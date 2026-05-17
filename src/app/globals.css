@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 210 33% 97%;
+  --foreground: 210 52% 13%;
+  --surface: 0 0% 100%;
+  --surface-soft: 210 40% 98%;
+  --border: 212 38% 89%;
+  --input: 212 38% 89%;
+  --ring: 212 82% 38%;
+  --primary: 209 75% 17%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 212 70% 39%;
+  --secondary-foreground: 0 0% 100%;
+  --accent: 40 62% 57%;
+  --accent-foreground: 210 52% 13%;
+  --muted: 212 34% 94%;
+  --muted-foreground: 215 18% 45%;
+  --success: 145 81% 39%;
+  --success-foreground: 0 0% 100%;
+  --warning: 35 92% 50%;
+  --warning-foreground: 210 52% 13%;
+  --danger: 4 86% 59%;
+  --danger-foreground: 0 0% 100%;
+  --info: 210 91% 58%;
+  --info-foreground: 0 0% 100%;
+}
+
+.dark {
+  --background: 212 65% 8%;
+  --foreground: 210 40% 98%;
+  --surface: 214 54% 12%;
+  --surface-soft: 212 51% 16%;
+  --border: 211 40% 25%;
+  --input: 211 40% 25%;
+  --ring: 212 70% 54%;
+  --primary: 209 75% 17%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 212 70% 39%;
+  --secondary-foreground: 0 0% 100%;
+  --accent: 40 62% 57%;
+  --accent-foreground: 210 40% 98%;
+  --muted: 212 42% 18%;
+  --muted-foreground: 215 18% 75%;
+  --success: 145 81% 39%;
+  --success-foreground: 0 0% 100%;
+  --warning: 35 92% 50%;
+  --warning-foreground: 210 52% 13%;
+  --danger: 4 86% 59%;
+  --danger-foreground: 0 0% 100%;
+  --info: 210 91% 58%;
+  --info-foreground: 0 0% 100%;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top right, rgba(214, 168, 79, 0.18), transparent 30%),
+    linear-gradient(180deg, rgba(232, 241, 255, 0.62) 0%, rgba(246, 248, 251, 1) 34%, rgba(246, 248, 251, 1) 100%);
+  color: hsl(var(--foreground));
+  font-family: "Segoe UI Variable", "Segoe UI", "Cambria", system-ui, sans-serif;
+}
+
+.dark body {
+  background:
+    radial-gradient(circle at top right, rgba(214, 168, 79, 0.15), transparent 26%),
+    linear-gradient(180deg, rgba(7, 17, 31, 1) 0%, rgba(13, 27, 47, 1) 100%);
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+::selection {
+  background: rgba(30, 90, 168, 0.22);
+}

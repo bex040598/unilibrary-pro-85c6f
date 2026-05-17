@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: atmu-smart-unilibrary-enterprise
+    runtime: node
+    plan: starter
+    region: frankfurt
+    rootDir: .
+    buildCommand: npm install && npm run build
+    startCommand: node ./node_modules/prisma/build/index.js migrate deploy && npm run start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    disk:
+      name: unilibrary-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: 22.11.0
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:/var/data/dev.db
+      - key: APP_URL
+        sync: false
+      - key: AUTH_SECRET
+        generateValue: true
+      - key: UPLOAD_DIR
+        value: /var/data/uploads
+      - key: MAX_UPLOAD_SIZE
+        value: 10485760
