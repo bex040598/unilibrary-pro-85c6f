@@ -1,10 +1,10 @@
-import { mkdir, writeFile, stat } from "node:fs/promises";
+import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 
 import { AppError } from "@/lib/errors/app-error";
 
-const allowedFileTypes = new Map<string, { mime: string[]; magic?: string[] }>([
+export const allowedFileTypes = new Map<string, { mime: string[]; magic?: string[] }>([
   [".pdf", { mime: ["application/pdf"], magic: ["25504446"] }],
   [".docx", { mime: ["application/vnd.openxmlformats-officedocument.wordprocessingml.document"] }],
   [".epub", { mime: ["application/epub+zip"] }],
@@ -22,7 +22,7 @@ function getBufferSignature(buffer: Buffer) {
 export async function ensureUploadDir() {
   const target = process.env.UPLOAD_DIR ?? "./storage/uploads";
   await mkdir(target, { recursive: true });
-  return target;
+  return path.resolve(target);
 }
 
 export async function validateUpload(file: File) {
@@ -40,16 +40,29 @@ export async function validateUpload(file: File) {
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  if (allowed.magic && !allowed.magic.some((magic) => getBufferSignature(buffer).startsWith(magic))) {
+  const magicNumberAccepted = !allowed.magic || allowed.magic.some((magic) => getBufferSignature(buffer).startsWith(magic));
+
+  if (!magicNumberAccepted) {
     throw new AppError("INVALID_FILE_TYPE", "Magic number validation failed", 400);
   }
 
-  return { ext, buffer };
+  return {
+    ext,
+    buffer,
+    report: {
+      filename: file.name,
+      mimeType: file.type,
+      extensionAccepted: true,
+      mimeAccepted: true,
+      magicNumberAccepted,
+      antivirusStatus: "PLACEHOLDER"
+    }
+  };
 }
 
-export async function saveUpload(file: File) {
+export async function saveLocalUpload(file: File) {
   const uploadDir = await ensureUploadDir();
-  const { ext, buffer } = await validateUpload(file);
+  const { ext, buffer, report } = await validateUpload(file);
   const filename = `${crypto.randomUUID()}${ext}`;
   const filepath = path.join(uploadDir, filename);
   const checksum = crypto.createHash("sha256").update(buffer).digest("hex");
@@ -59,10 +72,23 @@ export async function saveUpload(file: File) {
   const details = await stat(filepath);
 
   return {
-    filename,
+    storageKey: filename,
     filepath,
     checksum,
     size: Number(details.size),
-    format: ext.replace(".", "").toUpperCase()
+    format: ext.replace(".", "").toUpperCase(),
+    validationReport: report
+  };
+}
+
+export async function readLocalStoredFile(storageKey: string) {
+  const resolvedPath = path.isAbsolute(storageKey)
+    ? storageKey
+    : path.join(await ensureUploadDir(), storageKey);
+  const buffer = await readFile(resolvedPath);
+
+  return {
+    buffer,
+    filepath: resolvedPath
   };
 }

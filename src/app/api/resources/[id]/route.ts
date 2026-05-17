@@ -12,8 +12,8 @@ export const GET = withRoute(async (_request: Request, context: { params: Promis
 export const PUT = withRoute(async (request: Request, context: { params: Promise<{ id: string }> }) => {
   const user = await requireRole(["TEACHER", "LIBRARIAN", "MODERATOR", "ADMIN"]);
   const { id } = await context.params;
-  const { payload, file } = await parseResourceFormData(request);
-  const resource = await updateResource(user, id, payload, file);
+  const { payload, file, coverImage } = await parseResourceFormData(request);
+  const resource = await updateResource(user, id, payload, file, coverImage);
   return successResponse(resource, "Resource updated");
 });
 

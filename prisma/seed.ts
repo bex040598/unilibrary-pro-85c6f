@@ -53,7 +53,11 @@ startxref
 }
 
 async function main() {
-  const uploadDir = path.join(process.cwd(), "storage", "uploads");
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_PRODUCTION_SEED !== "true") {
+    throw new Error("Seed is disabled in production unless ALLOW_PRODUCTION_SEED=true");
+  }
+
+  const uploadDir = path.resolve(process.cwd(), process.env.UPLOAD_DIR ?? path.join("storage", "uploads"));
   await mkdir(uploadDir, { recursive: true });
 
   await prisma.passwordResetToken.deleteMany();

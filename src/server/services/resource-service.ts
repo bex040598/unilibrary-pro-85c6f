@@ -7,14 +7,16 @@ import { resourceRepository } from "@/server/repositories/resource-repository";
 import { canManageResource } from "@/server/policies/resource-policy";
 import { assertTransition, resourceTransitions } from "@/lib/permissions/transitions";
 import { writeAuditLog } from "@/server/services/audit-service";
-import { saveUpload } from "@/lib/storage/local-storage";
+import { saveUpload } from "@/lib/storage/storage-service";
 import { generateCitations } from "@/lib/citation";
+import { createNotification, createNotifications } from "@/server/services/notification-service";
 
 type ResourceInput = {
   title: string;
   description: string;
   abstract?: string;
   keywords?: string;
+  subject?: string;
   categoryId: string;
   facultyId?: string;
   departmentId?: string;
@@ -28,6 +30,7 @@ type ResourceInput = {
   resourceType: string;
   accessType: string;
   authorIds: string[];
+  authorNames: string[];
 };
 
 type ResourceQuery = {
@@ -51,6 +54,43 @@ function sanitizeResource(resource: NonNullable<Awaited<ReturnType<typeof resour
     authorNames: resource.authors.map((item) => item.author.fullName),
     availableCopies: resource.copies.filter((copy) => copy.status === "AVAILABLE").length
   };
+}
+
+async function resolveAuthorIds(tx: Prisma.TransactionClient, input: Pick<ResourceInput, "authorIds" | "authorNames">) {
+  const explicitIds = input.authorIds.filter(Boolean);
+  const names = input.authorNames.map((item) => item.trim()).filter(Boolean);
+
+  if (!names.length) {
+    return explicitIds;
+  }
+
+  const resolved = await Promise.all(
+    names.map(async (name) => {
+      const candidates = await tx.author.findMany({
+        where: {
+          fullName: {
+            contains: name
+          }
+        },
+        take: 10
+      });
+      const existing = candidates.find((candidate) => candidate.fullName.toLowerCase() === name.toLowerCase());
+
+      if (existing) {
+        return existing.id;
+      }
+
+      const created = await tx.author.create({
+        data: {
+          fullName: name
+        }
+      });
+
+      return created.id;
+    })
+  );
+
+  return Array.from(new Set([...explicitIds, ...resolved]));
 }
 
 export async function listResources(query: ResourceQuery) {
@@ -79,46 +119,55 @@ export async function getResourceById(id: string) {
   return sanitizeResource(resource);
 }
 
-export async function createResource(user: User, input: ResourceInput, file?: File | null) {
+export async function createResource(user: User, input: ResourceInput, file?: File | null, coverImage?: File | null) {
   let fileMeta: Awaited<ReturnType<typeof saveUpload>> | null = null;
+  let coverMeta: Awaited<ReturnType<typeof saveUpload>> | null = null;
   if (file) {
     fileMeta = await saveUpload(file);
   }
+  if (coverImage) {
+    coverMeta = await saveUpload(coverImage);
+  }
 
-  const resource = await prisma.resource.create({
-    data: {
-      title: input.title,
-      slug: `${slugify(input.title)}-${Math.random().toString(36).slice(2, 7)}`,
-      description: input.description,
-      abstract: input.abstract,
-      keywords: input.keywords,
-      categoryId: input.categoryId,
-      facultyId: input.facultyId,
-      departmentId: input.departmentId,
-      language: input.language,
-      publicationYear: input.publicationYear,
-      publisher: input.publisher,
-      isbn: input.isbn,
-      udk: input.udk,
-      bbk: input.bbk,
-      pages: input.pages,
-      resourceType: input.resourceType,
-      accessType: input.accessType,
-      uploadedById: user.id,
-      status: user.role === "LIBRARIAN" ? "APPROVED" : "DRAFT",
-      fileUrl: fileMeta?.filepath,
-      fileSize: fileMeta?.size,
-      fileFormat: fileMeta?.format,
-      fileChecksum: fileMeta?.checksum,
-      authors: {
-        createMany: {
-          data: input.authorIds.map((authorId) => ({ authorId }))
+  const resource = await prisma.$transaction(async (tx) => {
+    const authorIds = await resolveAuthorIds(tx, input);
+
+    return tx.resource.create({
+      data: {
+        title: input.title,
+        slug: `${slugify(input.title)}-${Math.random().toString(36).slice(2, 7)}`,
+        description: input.description,
+        abstract: input.abstract,
+        keywords: [input.keywords, input.subject].filter(Boolean).join(", "),
+        categoryId: input.categoryId,
+        facultyId: input.facultyId,
+        departmentId: input.departmentId,
+        language: input.language,
+        publicationYear: input.publicationYear,
+        publisher: input.publisher,
+        isbn: input.isbn,
+        udk: input.udk,
+        bbk: input.bbk,
+        pages: input.pages,
+        resourceType: input.resourceType,
+        accessType: input.accessType,
+        uploadedById: user.id,
+        status: user.role === "LIBRARIAN" ? "APPROVED" : "DRAFT",
+        coverImageUrl: coverMeta?.storageKey ?? null,
+        fileUrl: fileMeta?.storageKey,
+        fileSize: fileMeta?.size,
+        fileFormat: fileMeta?.format,
+        fileChecksum: fileMeta?.checksum,
+        authors: {
+          createMany: {
+            data: authorIds.map((authorId) => ({ authorId }))
+          }
         }
+      },
+      include: {
+        authors: true
       }
-    },
-    include: {
-      authors: true
-    }
+    });
   });
 
   await writeAuditLog({
@@ -126,13 +175,32 @@ export async function createResource(user: User, input: ResourceInput, file?: Fi
     action: "CREATE",
     entity: "Resource",
     entityId: resource.id,
-    newValue: { title: resource.title, status: resource.status }
+    newValue: {
+      title: resource.title,
+      status: resource.status,
+      uploadValidation: fileMeta?.validationReport ?? null
+    }
+  });
+
+  await createNotification({
+    userId: user.id,
+    type: "RESOURCE_DRAFT_CREATED",
+    title: "Resource draft created",
+    message: `${resource.title} draft holatida saqlandi.`,
+    actionUrl: "/uz/teacher/resources",
+    priority: "LOW"
   });
 
   return resource;
 }
 
-export async function updateResource(user: User, resourceId: string, input: ResourceInput, file?: File | null) {
+export async function updateResource(
+  user: User,
+  resourceId: string,
+  input: ResourceInput,
+  file?: File | null,
+  coverImage?: File | null
+) {
   const current = await prisma.resource.findUnique({
     where: { id: resourceId },
     include: { authors: true }
@@ -147,12 +215,17 @@ export async function updateResource(user: User, resourceId: string, input: Reso
   }
 
   let fileMeta: Awaited<ReturnType<typeof saveUpload>> | null = null;
+  let coverMeta: Awaited<ReturnType<typeof saveUpload>> | null = null;
   if (file) {
     fileMeta = await saveUpload(file);
+  }
+  if (coverImage) {
+    coverMeta = await saveUpload(coverImage);
   }
 
   const resource = await prisma.$transaction(async (tx) => {
     await tx.resourceAuthor.deleteMany({ where: { resourceId } });
+    const authorIds = await resolveAuthorIds(tx, input);
 
     return tx.resource.update({
       where: { id: resourceId },
@@ -161,7 +234,7 @@ export async function updateResource(user: User, resourceId: string, input: Reso
         slug: current.slug,
         description: input.description,
         abstract: input.abstract,
-        keywords: input.keywords,
+        keywords: [input.keywords, input.subject].filter(Boolean).join(", "),
         categoryId: input.categoryId,
         facultyId: input.facultyId,
         departmentId: input.departmentId,
@@ -175,13 +248,14 @@ export async function updateResource(user: User, resourceId: string, input: Reso
         resourceType: input.resourceType,
         accessType: input.accessType,
         rejectionReason: null,
-        fileUrl: fileMeta?.filepath ?? current.fileUrl,
+        coverImageUrl: coverMeta?.storageKey ?? current.coverImageUrl,
+        fileUrl: fileMeta?.storageKey ?? current.fileUrl,
         fileSize: fileMeta?.size ?? current.fileSize,
         fileFormat: fileMeta?.format ?? current.fileFormat,
         fileChecksum: fileMeta?.checksum ?? current.fileChecksum,
         authors: {
           createMany: {
-            data: input.authorIds.map((authorId) => ({ authorId }))
+            data: authorIds.map((authorId) => ({ authorId }))
           }
         }
       }
@@ -194,7 +268,21 @@ export async function updateResource(user: User, resourceId: string, input: Reso
     entity: "Resource",
     entityId: resource.id,
     oldValue: { title: current.title, status: current.status },
-    newValue: { title: resource.title, status: resource.status }
+    newValue: {
+      title: resource.title,
+      status: resource.status,
+      uploadValidation: fileMeta?.validationReport ?? null
+    }
+  });
+
+  await createNotification({
+    userId: current.uploadedById,
+    type: "RESOURCE_UPDATED",
+    title: "Resource updated",
+    message: `${resource.title} ma'lumotlari yangilandi.`,
+    actionUrl: `/uz/teacher/resources/${resource.id}/edit`,
+    priority: "LOW",
+    dedupeHours: 1
   });
 
   return resource;
@@ -255,6 +343,91 @@ export async function transitionResource(user: User, resourceId: string, nextSta
     oldValue: { status: current.status },
     newValue: { status: nextStatus, rejectionReason }
   });
+
+  if (nextStatus === "PENDING_REVIEW") {
+    const moderators = await prisma.user.findMany({
+      where: {
+        role: {
+          in: ["MODERATOR", "ADMIN"]
+        },
+        status: "ACTIVE"
+      }
+    });
+
+    await createNotifications(
+      moderators.map((moderator) => ({
+        userId: moderator.id,
+        type: "RESOURCE_PENDING_REVIEW",
+        title: "New resource pending review",
+        message: `${current.title} moderator tekshiruvi uchun yuborildi.`,
+        actionUrl: "/uz/moderator/pending",
+        priority: "NORMAL"
+      }))
+    );
+
+    if (current.departmentId) {
+      const departmentHeads = await prisma.user.findMany({
+        where: {
+          role: "DEPARTMENT_HEAD",
+          departmentId: current.departmentId,
+          status: "ACTIVE"
+        }
+      });
+
+      await createNotifications(
+        departmentHeads.map((head) => ({
+          userId: head.id,
+          type: "DEPARTMENT_RESOURCE_PENDING_REVIEW",
+          title: "Department resource submitted",
+          message: `${current.title} kafedra resursi review bosqichiga o'tdi.`,
+          actionUrl: "/uz/department-head/resources",
+          priority: "LOW"
+        }))
+      );
+    }
+  }
+
+  if (["APPROVED", "REJECTED", "NEEDS_REVISION"].includes(nextStatus)) {
+    await createNotification({
+      userId: current.uploadedById,
+      type: `RESOURCE_${nextStatus}`,
+      title: `Resource ${nextStatus.toLowerCase()}`,
+      message:
+        nextStatus === "APPROVED"
+          ? `${current.title} katalogga tasdiqlandi.`
+          : nextStatus === "NEEDS_REVISION"
+            ? `${current.title} bo'yicha tuzatish so'raldi.`
+            : `${current.title} rad etildi.`,
+      actionUrl: nextStatus === "APPROVED" ? `/uz/catalog/${current.slug}` : `/uz/teacher/resources/${current.id}/edit`,
+      priority: nextStatus === "APPROVED" ? "NORMAL" : "HIGH"
+    });
+
+    if (current.departmentId) {
+      const departmentHeads = await prisma.user.findMany({
+        where: {
+          role: "DEPARTMENT_HEAD",
+          departmentId: current.departmentId,
+          status: "ACTIVE"
+        }
+      });
+
+      await createNotifications(
+        departmentHeads.map((head) => ({
+          userId: head.id,
+          type: `DEPARTMENT_RESOURCE_${nextStatus}`,
+          title: `Department resource ${nextStatus.toLowerCase()}`,
+          message:
+            nextStatus === "APPROVED"
+              ? `${current.title} katalogga chiqarildi.`
+              : nextStatus === "NEEDS_REVISION"
+                ? `${current.title} bo'yicha tuzatish talab qilindi.`
+                : `${current.title} rad etildi.`,
+          actionUrl: "/uz/department-head/resources",
+          priority: nextStatus === "APPROVED" ? "LOW" : "NORMAL"
+        }))
+      );
+    }
+  }
 
   return updated;
 }

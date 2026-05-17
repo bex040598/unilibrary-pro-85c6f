@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db/prisma";
 import { assertTransition, reservationTransitions } from "@/lib/permissions/transitions";
 import { reservationRepository } from "@/server/repositories/reservation-repository";
 import { writeAuditLog } from "@/server/services/audit-service";
+import { createNotification, createNotifications } from "@/server/services/notification-service";
 
 export async function createReservation(user: User, resourceId: string, pickupDate: Date) {
   if (!["STUDENT", "TEACHER", "DEPARTMENT_HEAD", "LIBRARIAN", "ADMIN"].includes(user.role)) {
@@ -63,6 +64,35 @@ export async function createReservation(user: User, resourceId: string, pickupDa
     newValue: { status: reservation.status, resourceId }
   });
 
+  await createNotification({
+    userId: reservation.userId,
+    type: "RESERVATION_CREATED",
+    title: "Reservation created",
+    message: `${reservation.resource.title} uchun band qilish so'rovi yaratildi.`,
+    actionUrl: "/uz/cabinet/reservations",
+    priority: "NORMAL"
+  });
+
+  const staff = await prisma.user.findMany({
+    where: {
+      role: {
+        in: ["LIBRARIAN", "ADMIN"]
+      },
+      status: "ACTIVE"
+    }
+  });
+
+  await createNotifications(
+    staff.map((member) => ({
+      userId: member.id,
+      type: "RESERVATION_PENDING",
+      title: "New reservation request",
+      message: `${reservation.resource.title} uchun yangi band qilish so'rovi keldi.`,
+      actionUrl: "/uz/librarian/reservations",
+      priority: "NORMAL"
+    }))
+  );
+
   return reservation;
 }
 
@@ -114,6 +144,17 @@ export async function updateReservationStatus(user: User, reservationId: string,
     newValue: { status: nextStatus }
   });
 
+  if (["APPROVED", "REJECTED", "EXPIRED", "CANCELLED"].includes(nextStatus)) {
+    await createNotification({
+      userId: reservation.userId,
+      type: `RESERVATION_${nextStatus}`,
+      title: `Reservation ${nextStatus.toLowerCase()}`,
+      message: `Band qilish holati ${nextStatus.toLowerCase()} ga o'zgardi.`,
+      actionUrl: "/uz/cabinet/reservations",
+      priority: nextStatus === "APPROVED" ? "NORMAL" : "HIGH"
+    });
+  }
+
   return updated;
 }
 
@@ -158,6 +199,15 @@ export async function pickupReservation(user: User, reservationId: string) {
     entity: "Reservation",
     entityId: reservationId,
     newValue: { loanId: result.id }
+  });
+
+  await createNotification({
+    userId: reservation.userId,
+    type: "RESERVATION_PICKED_UP",
+    title: "Loan issued",
+    message: "Band qilingan nusxa topshirildi va loan yaratildi.",
+    actionUrl: "/uz/cabinet/loans",
+    priority: "NORMAL"
   });
 
   return result;

@@ -4,10 +4,12 @@ import Image from "next/image";
 
 import { CitationBox } from "@/components/catalog/citation-box";
 import { ResourceCard } from "@/components/catalog/resource-card";
+import { ResourceInteractions } from "@/components/catalog/resource-interactions";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getAppUrl } from "@/lib/app-url";
+import { prisma } from "@/lib/db/prisma";
+import { getCurrentUser } from "@/lib/permissions/rbac";
 import { generateQrDataUrl } from "@/lib/qr";
 import { formatDate } from "@/lib/utils";
 import { getCitation, getResourceBySlug, listReviews, listSimilarResources } from "@/server/services/resource-service";
@@ -22,12 +24,23 @@ export default async function ResourceDetailPage({
 }) {
   const { locale, slug } = await params;
   const resource = await getResourceBySlug(slug);
-  const [citations, similar, reviews, qrDataUrl] = await Promise.all([
+  const [citations, similar, reviews, qrDataUrl, currentUser] = await Promise.all([
     getCitation(resource.id),
     listSimilarResources(resource.id),
     listReviews(resource.id),
-    generateQrDataUrl(`${getAppUrl()}/${locale}/catalog/${resource.slug}`)
+    generateQrDataUrl(`${getAppUrl()}/${locale}/catalog/${resource.slug}`),
+    getCurrentUser()
   ]);
+  const favorite = currentUser
+    ? await prisma.favorite.findUnique({
+        where: {
+          userId_resourceId: {
+            userId: currentUser.id,
+            resourceId: resource.id
+          }
+        }
+      })
+    : null;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -40,11 +53,12 @@ export default async function ResourceDetailPage({
           <div className="rounded-2xl border border-border bg-surface-soft p-4">
             <Image src={qrDataUrl} alt="QR" width={240} height={240} className="mx-auto h-48 w-48" />
           </div>
-          <div className="grid gap-3">
-            <Button>Favorite</Button>
-            <Button variant="secondary">Download</Button>
-            <Button variant="secondary">Reserve</Button>
-          </div>
+          <ResourceInteractions
+            resourceId={resource.id}
+            locale={locale}
+            initialIsFavorite={Boolean(favorite)}
+            canInteract={Boolean(currentUser)}
+          />
         </Card>
 
         <div className="space-y-6">

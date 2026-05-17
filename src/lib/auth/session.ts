@@ -14,7 +14,13 @@ export type SessionPayload = {
 };
 
 function getSecret() {
-  return new TextEncoder().encode(process.env.AUTH_SECRET);
+  const secret = process.env.JWT_SECRET ?? process.env.AUTH_SECRET;
+
+  if (!secret) {
+    throw new Error("JWT_SECRET or AUTH_SECRET must be configured");
+  }
+
+  return new TextEncoder().encode(secret);
 }
 
 export async function createSessionToken(payload: SessionPayload) {

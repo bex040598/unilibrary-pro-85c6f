@@ -66,6 +66,12 @@ export async function parseBody<T>(request: Request, schema: ZodSchema<T>) {
   return schema.parse(body);
 }
 
+export function parseQuery<T>(request: Request, schema: ZodSchema<T>) {
+  const url = new URL(request.url);
+  const data = Object.fromEntries(url.searchParams.entries());
+  return schema.parse(data);
+}
+
 export function withRoute<TArgs extends unknown[]>(
   handler: (...args: TArgs) => Promise<Response> | Response
 ) {

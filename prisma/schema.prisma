@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -426,11 +426,15 @@ model Notification {
   type       String           @default("SYSTEM")
   title      String
   message    String
+  actionUrl  String?
+  priority   String           @default("NORMAL")
   readAt     DateTime?
   createdAt  DateTime         @default(now())
   user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([type])
+  @@index([priority])
   @@index([createdAt])
 }
 

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db/prisma";
 import { assertTransition, seatReservationTransitions } from "@/lib/permissions/transitions";
 import { readingRoomRepository } from "@/server/repositories/reading-room-repository";
 import { writeAuditLog } from "@/server/services/audit-service";
+import { createNotification } from "@/server/services/notification-service";
 
 export async function listReadingRooms() {
   return readingRoomRepository.listRooms();
@@ -99,6 +100,15 @@ export async function createSeatReservation(
     entityId: seatReservation.id
   });
 
+  await createNotification({
+    userId: user.id,
+    type: "READING_ROOM_BOOKED",
+    title: "Reading room booked",
+    message: "O'quv zali uchun joy band qilindi.",
+    actionUrl: "/uz/cabinet/reading-room",
+    priority: "NORMAL"
+  });
+
   return seatReservation;
 }
 
@@ -129,7 +139,7 @@ export async function updateSeatReservationStatus(user: User, reservationId: str
 
   assertTransition(reservation.status, nextStatus, seatReservationTransitions);
 
-  return prisma.seatReservation.update({
+  const updated = await prisma.seatReservation.update({
     where: { id: reservationId },
     data: {
       status: nextStatus,
@@ -137,4 +147,15 @@ export async function updateSeatReservationStatus(user: User, reservationId: str
       checkOutAt: nextStatus === "COMPLETED" ? new Date() : reservation.checkOutAt
     }
   });
+
+  await createNotification({
+    userId: reservation.userId,
+    type: `READING_ROOM_${nextStatus}`,
+    title: `Reading room ${nextStatus.toLowerCase()}`,
+    message: `O'quv zali broni ${nextStatus.toLowerCase()} holatiga o'tdi.`,
+    actionUrl: "/uz/cabinet/reading-room",
+    priority: nextStatus === "NO_SHOW" ? "HIGH" : "NORMAL"
+  });
+
+  return updated;
 }

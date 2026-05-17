@@ -13,7 +13,7 @@ export const GET = withRoute(async (request: Request) => {
 
 export const POST = withRoute(async (request: Request) => {
   const user = await requireRole(["TEACHER", "LIBRARIAN", "ADMIN"]);
-  const { payload, file } = await parseResourceFormData(request);
-  const resource = await createResource(user, payload, file);
+  const { payload, file, coverImage } = await parseResourceFormData(request);
+  const resource = await createResource(user, payload, file, coverImage);
   return successResponse(resource, "Resource created");
 });

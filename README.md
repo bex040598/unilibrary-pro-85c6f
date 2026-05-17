@@ -1,35 +1,38 @@
 # ATMU Smart UniLibrary Enterprise
 
-ATMU uchun enterprise darajadagi raqamli kutubxona platformasi: katalog, resource workflow, book copy circulation, reading-room reservation, role-based dashboards va boshqaruv API’lari.
+ATMU Smart UniLibrary Enterprise universitet elektron kutubxonasi, bosma kitoblar aylanishi, reading room bronlash, teacher-moderator workflow, admin boshqaruvi va audit/security loggingni birlashtirgan Next.js + Prisma platformasi.
 
 ## Features
 
-- Locale-based public portal: `uz`, `ru`, `en`
-- Server-side catalog search, filter, sort, pagination
-- Resource detail page with metadata, QR, citation, reviews, similar resources
-- Teacher resource workflow: `DRAFT -> PENDING_REVIEW -> APPROVED/REJECTED/NEEDS_REVISION`
-- Librarian workflows: reservation approve/pickup, loan return, renewal review
+- Public catalog with server-side search, filter, sort, pagination
+- Resource detail with QR, citation, PDF preview, favorite, review, reservation, download tracking
+- Teacher upload wizard with `DRAFT -> PENDING_REVIEW`
+- Moderator review workspace with `APPROVED`, `REJECTED`, `NEEDS_REVISION`
+- Reservation, pickup, loan, return, overdue, renewal workflows
 - Reading room booking with overlap protection
-- JWT cookie auth, RBAC, ownership checks, audit/security logs
-- Admin health/settings endpoints and dashboard summaries
-- Prisma-backed real database with migration SQL and development seed
+- Admin CRUD APIs, audit logs, security logs, analytics, CSV export
+- Notification center for workflow-driven events
+- Storage abstraction for `local` and `s3`
+- PostgreSQL-first Prisma schema and Render Blueprint
 
 ## Tech Stack
 
 - Next.js 15 App Router
 - React 19
-- TypeScript strict mode
+- TypeScript
 - Tailwind CSS
 - Prisma ORM
-- SQLite for current local runtime
-- Vitest
+- PostgreSQL for production
+- SQLite for automated local test fallback only
+- Vitest integration tests
+- Recharts
+- AWS S3 SDK compatible adapter
 
-## Current Architecture Status
+## Current Module Status
 
-- `DONE`: Next.js foundation, auth, RBAC, catalog API/UI, reservation workflow, loan return workflow, reading-room overlap protection, seed, lint, build, automated tests
-- `PARTIAL`: Admin panel breadth, teacher upload UX depth, full role subpages, notification UI, production deployment hardening
-- `BLOCKED`: Native `prisma migrate dev` and `prisma db seed` wrapper commands inside this non-interactive Windows/Unicode-path environment
-- `PARTIAL`: PostgreSQL target architecture. Current workspace runs on SQLite because no local PostgreSQL server is available in this environment
+- `DONE`: Auth, RBAC core, ownership checks, catalog API, search/filter/sort/pagination, reservation workflow, loan workflow, renewal workflow, reading-room overlap protection, notifications backend, analytics API, test suite, build, lint
+- `PARTIAL`: Admin CRUD UI breadth, full role-panel UX breadth, notification pages for every staff role, S3 live verification
+- `BLOCKED`: Live PostgreSQL migration verification inside this Codex workspace because `docker`, `docker compose`, and `psql` are not installed here
 
 ## Folder Structure
 
@@ -40,65 +43,113 @@ src/
   lib/
   server/
 prisma/
+scripts/
 tests/
 ```
 
-## Environment
+## Environment Variables
 
 See [.env.example](./.env.example).
 
-Important local variables:
+Required core variables:
 
 - `DATABASE_URL`
-- `AUTH_SECRET`
+- `JWT_SECRET`
 - `APP_URL`
+- `STORAGE_PROVIDER`
 - `UPLOAD_DIR`
 - `MAX_UPLOAD_SIZE`
 
+Optional S3 variables:
+
+- `S3_ENDPOINT`
+- `S3_BUCKET`
+- `S3_ACCESS_KEY`
+- `S3_SECRET_KEY`
+- `S3_REGION`
+
 ## Database Setup
 
-### Important Windows workaround
+### Production target
 
-This workspace lives under a Unicode path. Prisma query/migrate commands were only reliable through a mapped ASCII drive.
+Production target is PostgreSQL. SQLite is retained only for local automated tests and constrained local fallback.
 
-Run this first in PowerShell:
+### Option A: Docker Compose
+
+```powershell
+docker compose up -d postgres
+npm run db:migrate
+npm run db:seed
+```
+
+Optional MinIO is included in `docker-compose.yml`:
+
+```powershell
+docker compose up -d minio
+```
+
+### Option B: Existing PostgreSQL server
+
+1. Create a PostgreSQL database.
+2. Put its connection string into `DATABASE_URL`.
+3. Run:
+
+```powershell
+npm run db:migrate
+npm run db:seed
+```
+
+## Prisma Commands
+
+```powershell
+npm run db:migrate
+npm run db:seed
+npm run db:reset
+npm run db:studio
+```
+
+Notes:
+
+- `db:migrate` uses PostgreSQL schema: `prisma/schema.prisma`
+- `test` uses SQLite schema: `prisma/schema.sqlite.prisma`
+- `db:seed` is development-safe and guarded against accidental production execution unless `ALLOW_PRODUCTION_SEED=true`
+- SQLite test seed resets schema before seeding, so reruns do not fail on duplicates
+
+## Windows Unicode Path Workaround
+
+If your project is inside a path with Cyrillic or other Unicode characters, Prisma CLI may be unstable on Windows. This repository includes safe wrappers in `scripts/` that temporarily map the workspace to an ASCII drive letter.
+
+If you still hit path issues, run:
 
 ```powershell
 subst X: "C:\Users\User\OneDrive\Документы\Axborot Texnologiyalari va Menejment Universiteti"
 cd X:\
 ```
 
-### Apply schema
-
-Interactive `prisma migrate dev` is blocked in this Codex environment, so the project currently uses generated migration SQL plus deploy:
-
-```powershell
-node .\node_modules\prisma\build\index.js migrate deploy
-```
-
-### Seed
-
-Direct seed script:
-
-```powershell
-npx tsx .\prisma\seed.ts
-```
-
-Note: `npm run db:seed` / `prisma db seed` still does not execute correctly in this environment and is currently marked `BLOCKED`.
+Then rerun the needed command.
 
 ## Development
 
 ```powershell
-subst X: "C:\Users\User\OneDrive\Документы\Axborot Texnologiyalari va Menejment Universiteti"
-cd X:\
 npm install
+npm run dev
+```
+
+## Quality Gates
+
+```powershell
 npm run lint
 npm test
 npm run build
-npm run start
 ```
 
-## Default Logins
+Verified in this workspace:
+
+- `npm run lint` - PASS
+- `npm test` - PASS
+- `npm run build` - PASS
+
+## Default Development Logins
 
 - `admin@atmu.uz / Admin12345!`
 - `librarian@atmu.uz / Librarian12345!`
@@ -107,66 +158,118 @@ npm run start
 - `student@atmu.uz / Student12345!`
 - `department@atmu.uz / Department12345!`
 
+These are for development seed only. They must not be enabled automatically in production.
+
 ## Security Notes
 
-- Passwords hash with `bcrypt`
-- HttpOnly auth cookie
-- RBAC and ownership checks in server layer
-- Security headers via `middleware.ts`
-- In-memory rate limit for auth endpoints
-- File type, size, and magic-number validation for uploads
-- Audit and security logs are persisted in the database
+- Passwords are hashed with `bcrypt`
+- Auth uses signed HttpOnly cookie sessions
+- `JWT_SECRET` is required
+- RBAC and ownership checks run in server/API layer
+- Protected file access is policy-controlled
+- Upload validation checks extension, MIME type, size, magic number, checksum
+- Antivirus scanning is currently a placeholder status in upload validation reports
+- Audit logs and security logs are stored in the database
+- Auth endpoints are rate-limited
+- Security headers are applied in `middleware.ts`
 
-## Deployment Notes
+## Storage Strategy
 
-### Render
+### Local
 
-- `render.yaml` added for live deployment via Render Blueprint
-- Current Render path is `PARTIAL`: it runs on SQLite with a persistent disk on a paid Render web service, which is acceptable for demo/live preview but not enterprise-grade production
-- For true production, migrate to PostgreSQL before relying on long-term circulation data
-- Set `APP_URL` in Render to the final `https://...onrender.com` URL after the first deploy
-- Uploads are configured to persist under `/var/data/uploads`
+- `STORAGE_PROVIDER=local`
+- Files are saved under `UPLOAD_DIR`
+- Protected files are served through `/api/files/resources/[resourceId]`
 
-Suggested flow:
+### S3-compatible
 
-```text
-1. Push repo to GitHub
-2. In Render open New + -> Blueprint
-3. Select the GitHub repository
-4. Render reads render.yaml automatically
-5. Set APP_URL to the generated public URL
-6. Deploy
-```
+- `STORAGE_PROVIDER=s3`
+- Configure `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_REGION`
+- The app generates signed read URLs for protected file delivery
 
-### Vercel
+## Testing
 
-- Possible for the frontend, but the current SQLite + local upload architecture is not ideal there
-- Prefer Render until PostgreSQL and object storage migration is completed
+Current automated coverage includes:
 
-### Docker
+- Auth integration
+- Reservation and loan workflow integration
+- Enterprise flow integration:
+  - Teacher upload -> moderator approve -> catalog visibility
+  - Reservation -> approve -> pickup -> loan
+  - Overdue -> renewal -> librarian approve
+  - Reading room booking -> check-in -> check-out
+  - Admin role change
+- RBAC regression coverage:
+  - Guest private access denied
+  - Student admin actions denied
+  - Teacher cross-ownership denied
+  - Department-head overreach denied
+  - Moderator/librarian/admin privileged actions allowed
+- Status transition unit tests
 
-Current repo does not yet include a `Dockerfile` or `docker-compose.yml`. This remains `TODO`.
+## Render Deployment
 
-## Monitoring / Backup Recommendations
+This repo now includes a PostgreSQL-first [render.yaml](./render.yaml).
 
-- Add uptime monitor for `/api/admin/health`
-- Add structured log shipping
-- Add Sentry/OpenTelemetry placeholder
-- Backup PostgreSQL daily in production
-- Store uploads in object storage with versioning
+Blueprint resources:
+
+- Web service: `atmu-smart-unilibrary-enterprise`
+- Render Postgres: `atmu-smart-unilibrary-db`
+
+Recommended steps:
+
+1. Push the repository to GitHub.
+2. In Render select `New + -> Blueprint`.
+3. Choose this repository.
+4. Provide `APP_URL` during the first setup.
+5. If you want object storage, set `STORAGE_PROVIDER=s3` and fill the S3 variables manually.
+6. Deploy.
+
+`render.yaml` references the database connection string from the managed Render Postgres instance using `fromDatabase`.
+
+## Vercel Deployment
+
+Frontend deployment on Vercel is possible, but only after moving uploads to S3-compatible storage and using managed PostgreSQL. Local disk-backed uploads are not a good fit for Vercel serverless runtime.
+
+## Docker
+
+Included files:
+
+- [Dockerfile](./Dockerfile)
+- [docker-compose.yml](./docker-compose.yml)
+
+Compose services:
+
+- `app`
+- `postgres`
+- `minio`
+
+## Monitoring and Backup Recommendations
+
+- Use `/api/health` or `/api/admin/health` for uptime probes
+- Ship logs to a centralized log platform
+- Add Sentry or OpenTelemetry in the next iteration
+- Enable Render Postgres backups / PITR on paid plans
+- Back up object storage or disk uploads separately from database backups
+- Monitor failed logins, upload failures, and overdue growth
 
 ## Troubleshooting
 
-- If Prisma reports path/open-file issues, use `subst X:` workaround
-- If port `3000` is busy, stop the previous `node` process before `npm run start`
-- If cookies look `Secure` on localhost, verify `APP_URL=http://localhost:3000`
+- If Prisma fails on Windows under a Unicode path, use the built-in wrapper scripts or `subst X:`
+- If `npm run db:migrate` fails, verify PostgreSQL is reachable from `DATABASE_URL`
+- If `npm run db:seed` fails in production, confirm `ALLOW_PRODUCTION_SEED=true` only when intentionally seeding
+- If upload access fails under `s3`, verify bucket credentials and endpoint format
 
-## TODO / Future Improvements
+## Known Gaps
 
-- Replace SQLite with PostgreSQL and verify true `prisma migrate dev`
-- Add missing CRUD modules: categories, faculties, departments, users, notifications
-- Expand dashboards into full feature areas
-- Add real upload wizard UX and moderation workspace
-- Add CSV export, charts, and advanced reports
-- Add full API/integration coverage for RBAC matrix
-- Clean up the stray sibling directories created during Unicode path debugging
+- Admin UI supports real data and admin APIs, but not every entity has a polished modal-based CRUD experience yet
+- Role-specific panels exist, but some routes still need deeper workflow UX to reach full enterprise breadth
+- Live S3 verification and live PostgreSQL migration verification are blocked in this workspace because external infrastructure tools are unavailable here
+
+## Next Improvements
+
+- Finish full admin CRUD UX with dedicated forms and dialogs
+- Expand staff notification center pages
+- Add Playwright/browser E2E on top of API integration coverage
+- Add richer exports such as Excel and PDF
+- Add antivirus integration and background scanning pipeline

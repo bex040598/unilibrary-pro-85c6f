@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db/prisma";
 import { assertTransition, loanTransitions } from "@/lib/permissions/transitions";
 import { loanRepository } from "@/server/repositories/loan-repository";
 import { writeAuditLog } from "@/server/services/audit-service";
+import { createLoanAlerts, createNotification, createNotifications } from "@/server/services/notification-service";
 
 function computeOverdueStatus(dueAt: Date, currentStatus: string) {
   if (["RETURNED", "LOST"].includes(currentStatus)) {
@@ -16,6 +17,7 @@ function computeOverdueStatus(dueAt: Date, currentStatus: string) {
 
 export async function listMyLoans(userId: string) {
   const loans = await loanRepository.listByUser(userId);
+  await createLoanAlerts(userId);
   return Promise.all(
     loans.map(async (loan) => {
       const status = computeOverdueStatus(loan.dueAt, loan.status);
@@ -70,6 +72,15 @@ export async function issueLoan(user: User, input: { userId: string; resourceId:
     newValue: { copyId: input.copyId }
   });
 
+  await createNotification({
+    userId: input.userId,
+    type: "LOAN_ISSUED",
+    title: "Loan issued",
+    message: "Siz uchun yangi loan yaratildi.",
+    actionUrl: "/uz/cabinet/loans",
+    priority: "NORMAL"
+  });
+
   return loan;
 }
 
@@ -113,6 +124,15 @@ export async function returnLoan(user: User, loanId: string) {
     entityId: loanId
   });
 
+  await createNotification({
+    userId: loan.userId,
+    type: "LOAN_RETURNED",
+    title: "Loan returned",
+    message: "Loan muvaffaqiyatli yopildi va nusxa available holatiga qaytdi.",
+    actionUrl: "/uz/cabinet/history",
+    priority: "LOW"
+  });
+
   return result;
 }
 
@@ -126,13 +146,44 @@ export async function requestRenewal(user: User, loanId: string, requestedDueAt:
     throw new AppError("FORBIDDEN", "You cannot renew this loan", 403);
   }
 
-  return prisma.renewalRequest.create({
+  const renewal = await prisma.renewalRequest.create({
     data: {
       loanId,
       userId: loan.userId,
       requestedDueAt
     }
   });
+
+  await createNotification({
+    userId: loan.userId,
+    type: "RENEWAL_REQUEST_CREATED",
+    title: "Renewal requested",
+    message: "Loan renewal so'rovi yuborildi.",
+    actionUrl: "/uz/cabinet/renewals",
+    priority: "NORMAL"
+  });
+
+  const staff = await prisma.user.findMany({
+    where: {
+      role: {
+        in: ["LIBRARIAN", "ADMIN"]
+      },
+      status: "ACTIVE"
+    }
+  });
+
+  await createNotifications(
+    staff.map((member) => ({
+      userId: member.id,
+      type: "RENEWAL_PENDING",
+      title: "Renewal review required",
+      message: "Yangi renewal request kutubxonachi ko'rib chiqishini kutmoqda.",
+      actionUrl: "/uz/librarian/renewals",
+      priority: "NORMAL"
+    }))
+  );
+
+  return renewal;
 }
 
 export async function reviewRenewal(user: User, loanId: string, approve: boolean, librarianNote?: string) {
@@ -154,7 +205,7 @@ export async function reviewRenewal(user: User, loanId: string, approve: boolean
 
   const status = approve ? "APPROVED" : "REJECTED";
 
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const updatedRenewal = await tx.renewalRequest.update({
       where: { id: renewal.id },
       data: { status, librarianNote }
@@ -175,6 +226,19 @@ export async function reviewRenewal(user: User, loanId: string, approve: boolean
 
     return updatedRenewal;
   });
+
+  await createNotification({
+    userId: renewal.userId,
+    type: approve ? "RENEWAL_APPROVED" : "RENEWAL_REJECTED",
+    title: approve ? "Renewal approved" : "Renewal rejected",
+    message: approve
+      ? "Loan renewal so'rovi tasdiqlandi."
+      : "Loan renewal so'rovi rad etildi.",
+    actionUrl: "/uz/cabinet/renewals",
+    priority: approve ? "NORMAL" : "HIGH"
+  });
+
+  return result;
 }
 
 export async function listOverdueLoans() {

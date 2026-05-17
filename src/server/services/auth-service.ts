@@ -5,6 +5,7 @@ import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { prisma } from "@/lib/db/prisma";
 import { userRepository } from "@/server/repositories/user-repository";
 import { writeAuditLog, writeSecurityLog } from "@/server/services/audit-service";
+import { createNotifications } from "@/server/services/notification-service";
 
 export async function registerUser(input: {
   fullName: string;
@@ -69,6 +70,26 @@ export async function loginUser(input: { email: string; password: string; ipAddr
       ipAddress: input.ipAddress,
       userAgent: input.userAgent
     });
+
+    const admins = await prisma.user.findMany({
+      where: {
+        role: "ADMIN",
+        status: "ACTIVE"
+      }
+    });
+
+    await createNotifications(
+      admins.map((admin) => ({
+        userId: admin.id,
+        type: "SECURITY_ALERT",
+        title: "Blocked login attempt",
+        message: `${user.email} akkauntiga bloklangan login urinish qayd etildi.`,
+        actionUrl: "/uz/admin/security",
+        priority: "HIGH",
+        dedupeHours: 2
+      }))
+    );
+
     throw new AppError("FORBIDDEN", "Account is blocked or inactive", 403);
   }
 

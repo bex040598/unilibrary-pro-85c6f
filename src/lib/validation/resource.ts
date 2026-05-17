@@ -5,6 +5,7 @@ export const resourceInputSchema = z.object({
   description: z.string().min(10),
   abstract: z.string().optional(),
   keywords: z.string().optional(),
+  subject: z.string().optional(),
   categoryId: z.string().min(1),
   facultyId: z.string().optional(),
   departmentId: z.string().optional(),
@@ -31,7 +32,8 @@ export const resourceInputSchema = z.object({
     ])
     .default("TEXTBOOK"),
   accessType: z.enum(["PUBLIC", "AUTH_REQUIRED", "STAFF_ONLY", "PRIVATE"]).default("PUBLIC"),
-  authorIds: z.array(z.string()).default([])
+  authorIds: z.array(z.string()).default([]),
+  authorNames: z.array(z.string()).default([])
 });
 
 export const resourceQuerySchema = z.object({

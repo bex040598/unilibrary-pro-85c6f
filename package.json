@@ -4,22 +4,29 @@
   "private": true,
   "description": "ATMU Smart UniLibrary Enterprise",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "npm run prisma:generate:postgres && node scripts/run-next.mjs dev",
+    "build": "npm run prisma:generate:postgres && next build && node scripts/ensure-next-build-id.mjs",
+    "start": "npm run prisma:generate:postgres && node scripts/run-next.mjs start",
     "lint": "eslint . --max-warnings=0",
-    "test": "vitest run",
+    "test": "npm run prisma:generate:sqlite && npm run db:seed:sqlite && node scripts/run-vitest.mjs",
     "test:watch": "vitest",
-    "prisma:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
-    "db:seed": "prisma db seed",
+    "prisma:generate": "node scripts/prisma-safe.mjs generate --schema prisma/schema.prisma",
+    "prisma:generate:postgres": "node scripts/prisma-safe.mjs generate --schema prisma/schema.prisma",
+    "prisma:generate:sqlite": "node scripts/prisma-safe.mjs generate --schema prisma/schema.sqlite.prisma",
+    "db:migrate": "npm run prisma:generate:postgres && node scripts/prisma-safe.mjs migrate dev --schema prisma/schema.prisma",
+    "db:seed": "npm run prisma:generate:postgres && node scripts/run-seed.mjs postgres",
+    "db:reset": "npm run prisma:generate:postgres && node scripts/prisma-safe.mjs migrate reset --force --skip-seed --schema prisma/schema.prisma && npm run db:seed",
     "db:studio": "prisma studio",
+    "db:migrate:sqlite": "npm run prisma:generate:sqlite && node scripts/prisma-safe.mjs migrate dev --schema prisma/schema.sqlite.prisma",
+    "db:seed:sqlite": "npm run prisma:generate:sqlite && node scripts/prisma-safe.mjs db push --force-reset --skip-generate --schema prisma/schema.sqlite.prisma && node scripts/run-seed.mjs sqlite",
     "postinstall": "prisma generate"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1048.0",
+    "@aws-sdk/s3-request-presigner": "^3.1048.0",
     "@hookform/resolvers": "^3.9.0",
     "@prisma/client": "^5.20.0",
     "bcrypt": "^5.1.1",

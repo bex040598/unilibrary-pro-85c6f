@@ -1,10 +1,8 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-
 import { withRoute } from "@/lib/api/response";
 import { getCurrentUser } from "@/lib/permissions/rbac";
 import { prisma } from "@/lib/db/prisma";
 import { AppError } from "@/lib/errors/app-error";
+import { getProtectedFileAccess } from "@/lib/storage/storage-service";
 import { canAccessPrivateResource } from "@/server/policies/resource-policy";
 
 function detectContentType(format?: string | null) {
@@ -40,12 +38,15 @@ export const GET = withRoute(async (request: Request, context: { params: Promise
     throw new AppError("FORBIDDEN", "You do not have access to this file", 403);
   }
 
-  const filepath = path.resolve(resource.fileUrl);
-  const buffer = await readFile(filepath);
   const url = new URL(request.url);
   const isDownload = url.searchParams.get("download") === "1";
+  const access = await getProtectedFileAccess(resource.fileUrl, isDownload);
 
-  return new Response(buffer, {
+  if (access.type === "redirect") {
+    return Response.redirect(access.signedUrl, 302);
+  }
+
+  return new Response(access.buffer, {
     headers: {
       "Content-Type": detectContentType(resource.fileFormat),
       "Content-Disposition": `${isDownload ? "attachment" : "inline"}; filename="${resource.slug}.${(resource.fileFormat ?? "bin").toLowerCase()}"`
