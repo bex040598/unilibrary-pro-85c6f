@@ -1,49 +1,121 @@
 export const dynamic = "force-dynamic";
 
-import { resourceQuerySchema } from "@/lib/validation/resource";
-import { listResources } from "@/server/services/resource-service";
-import { prisma } from "@/lib/db/prisma";
+import { ResourceCard } from "@/components/catalog/resource-card";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { ResourceCard } from "@/components/catalog/resource-card";
-import { Button } from "@/components/ui/button";
+import { getDatabaseHealth } from "@/lib/db/database-health";
+import { getLocale } from "@/lib/i18n";
+import { buildPagination } from "@/lib/utils";
+import { resourceQuerySchema } from "@/lib/validation/resource";
+import { prisma } from "@/lib/db/prisma";
+import { listResources } from "@/server/services/resource-service";
+
+type CatalogSearchParams = Record<string, string | string[] | undefined>;
+
+function firstValue(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function parseCatalogSearchParams(rawSearchParams: CatalogSearchParams) {
+  const result = resourceQuerySchema.safeParse({
+    q: firstValue(rawSearchParams.q),
+    category: firstValue(rawSearchParams.category),
+    language: firstValue(rawSearchParams.language),
+    facultyId: firstValue(rawSearchParams.facultyId),
+    departmentId: firstValue(rawSearchParams.departmentId),
+    resourceType: firstValue(rawSearchParams.resourceType),
+    accessType: firstValue(rawSearchParams.accessType),
+    hasAvailableCopies: firstValue(rawSearchParams.hasAvailableCopies),
+    rating: firstValue(rawSearchParams.rating),
+    sort: firstValue(rawSearchParams.sort),
+    page: firstValue(rawSearchParams.page),
+    limit: firstValue(rawSearchParams.limit)
+  });
+
+  if (result.success) {
+    return result.data;
+  }
+
+  return resourceQuerySchema.parse({});
+}
+
+async function getCatalogData(query: ReturnType<typeof parseCatalogSearchParams>) {
+  const empty = {
+    resources: {
+      items: [],
+      meta: buildPagination(query.page, query.limit, 0)
+    },
+    categories: [],
+    faculties: [],
+    departments: [],
+    databaseOk: false,
+    databaseHint: "Ma'lumotlar bazasi hozircha mavjud emas"
+  };
+
+  const health = await getDatabaseHealth().catch(() => ({
+    ok: false,
+    diagnostics: { hint: "Database unavailable" },
+    error: "Database unavailable"
+  }));
+
+  if (!health.ok) {
+    return {
+      ...empty,
+      databaseHint: health.error ?? health.diagnostics.hint ?? empty.databaseHint
+    };
+  }
+
+  try {
+    const [resources, categories, faculties, departments] = await Promise.all([
+      listResources(query),
+      prisma.category.findMany({ orderBy: { nameUz: "asc" } }),
+      prisma.faculty.findMany({ orderBy: { nameUz: "asc" } }),
+      prisma.department.findMany({ where: { isActive: true }, orderBy: { nameUz: "asc" } })
+    ]);
+
+    return {
+      resources,
+      categories,
+      faculties,
+      departments,
+      databaseOk: true,
+      databaseHint: null as string | null
+    };
+  } catch (error) {
+    console.error("[catalog] failed to load page data", error);
+
+    return {
+      ...empty,
+      databaseHint: "Katalog ma'lumotlarini yuklashda vaqtinchalik muammo yuz berdi"
+    };
+  }
+}
 
 export default async function CatalogPage({
   params,
   searchParams
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: Promise<CatalogSearchParams>;
 }) {
   const { locale } = await params;
+  const safeLocale = getLocale(locale);
   const rawSearchParams = await searchParams;
-  const parsed = resourceQuerySchema.parse({
-    ...rawSearchParams,
-    q: Array.isArray(rawSearchParams.q) ? rawSearchParams.q[0] : rawSearchParams.q,
-    category: Array.isArray(rawSearchParams.category) ? rawSearchParams.category[0] : rawSearchParams.category,
-    language: Array.isArray(rawSearchParams.language) ? rawSearchParams.language[0] : rawSearchParams.language,
-    facultyId: Array.isArray(rawSearchParams.facultyId) ? rawSearchParams.facultyId[0] : rawSearchParams.facultyId,
-    departmentId: Array.isArray(rawSearchParams.departmentId) ? rawSearchParams.departmentId[0] : rawSearchParams.departmentId,
-    resourceType: Array.isArray(rawSearchParams.resourceType) ? rawSearchParams.resourceType[0] : rawSearchParams.resourceType,
-    accessType: Array.isArray(rawSearchParams.accessType) ? rawSearchParams.accessType[0] : rawSearchParams.accessType,
-    sort: Array.isArray(rawSearchParams.sort) ? rawSearchParams.sort[0] : rawSearchParams.sort,
-    hasAvailableCopies: Array.isArray(rawSearchParams.hasAvailableCopies)
-      ? rawSearchParams.hasAvailableCopies[0]
-      : rawSearchParams.hasAvailableCopies,
-    page: Array.isArray(rawSearchParams.page) ? rawSearchParams.page[0] : rawSearchParams.page,
-    limit: Array.isArray(rawSearchParams.limit) ? rawSearchParams.limit[0] : rawSearchParams.limit
-  });
-
-  const [resources, categories, faculties, departments] = await Promise.all([
-    listResources(parsed),
-    prisma.category.findMany({ orderBy: { nameUz: "asc" } }),
-    prisma.faculty.findMany({ orderBy: { nameUz: "asc" } }),
-    prisma.department.findMany({ orderBy: { nameUz: "asc" } })
-  ]);
+  const parsed = parseCatalogSearchParams(rawSearchParams);
+  const { resources, categories, faculties, departments, databaseOk, databaseHint } = await getCatalogData(parsed);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      {!databaseOk ? (
+        <Card className="mb-6 border-danger/30 bg-danger/5 text-danger">
+          <p className="text-sm font-semibold">Database connection problem</p>
+          <p className="mt-2 text-sm text-foreground">
+            Katalog vaqtincha cheklangan rejimda ishlayapti. {databaseHint ?? "Ma'lumotlar bazasiga ulanib bo'lmadi"}.
+          </p>
+        </Card>
+      ) : null}
       <div className="grid gap-6 lg:grid-cols-[280px,1fr]">
         <aside className="space-y-4">
           <Card>
@@ -120,7 +192,7 @@ export default async function CatalogPage({
           {resources.items.length > 0 ? (
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
               {resources.items.map((resource) => (
-                <ResourceCard key={resource.id} locale={locale} resource={resource} />
+                <ResourceCard key={resource.id} locale={safeLocale} resource={resource} />
               ))}
             </div>
           ) : (

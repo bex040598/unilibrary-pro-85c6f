@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 
 import { SiteShell } from "@/components/layout/site-shell";
 import { getAppUrl } from "@/lib/app-url";
 import { appName, locales } from "@/lib/constants";
+import { getLocale } from "@/lib/i18n";
 
 export async function generateMetadata({
   params
@@ -11,14 +11,15 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  const safeLocale = getLocale(locale);
 
   return {
-    title: `${appName} | ${locale.toUpperCase()}`,
+    title: `${appName} | ${safeLocale.toUpperCase()}`,
     description: "Enterprise academic library platform",
     openGraph: {
       title: appName,
       description: "Enterprise academic library platform",
-      url: `${getAppUrl()}/${locale}`
+      url: `${getAppUrl()}/${safeLocale}`
     }
   };
 }
@@ -31,10 +32,6 @@ export default async function LocaleLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-
-  if (!(locales as readonly string[]).includes(locale)) {
-    notFound();
-  }
-
-  return <SiteShell locale={locale}>{children}</SiteShell>;
+  const safeLocale = (locales as readonly string[]).includes(locale) ? locale : getLocale(locale);
+  return <SiteShell locale={safeLocale}>{children}</SiteShell>;
 }

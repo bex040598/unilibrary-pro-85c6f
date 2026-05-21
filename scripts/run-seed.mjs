@@ -82,11 +82,11 @@ async function main() {
         ...process.env,
         ...loadedEnv,
         DATABASE_URL:
-          process.env.DATABASE_URL ??
-          loadedEnv.DATABASE_URL ??
-          (target === "sqlite"
+          target === "sqlite"
             ? "file:./dev.db"
-            : "postgresql://postgres:postgres@localhost:5432/unilibrary?schema=public")
+            : process.env.DATABASE_URL ??
+              loadedEnv.DATABASE_URL ??
+              "postgresql://postgres:postgres@localhost:5432/unilibrary?schema=public"
       }
     });
   });
