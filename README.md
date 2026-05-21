@@ -114,6 +114,7 @@ Notes:
 - `test` uses SQLite schema: `prisma/schema.sqlite.prisma`
 - `db:seed` is development-safe and guarded against accidental production execution unless `ALLOW_PRODUCTION_SEED=true`
 - SQLite test seed resets schema before seeding, so reruns do not fail on duplicates
+- Render startup uses `scripts/render-start.mjs`: it verifies `DATABASE_URL`, runs `prisma migrate deploy`, checks connectivity, seeds automatically only when the database is empty, and then starts Next.js
 
 ## Windows Unicode Path Workaround
 

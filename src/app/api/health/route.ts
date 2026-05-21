@@ -1,12 +1,31 @@
-import { withRoute, successResponse } from "@/lib/api/response";
-import { prisma } from "@/lib/db/prisma";
+import { NextResponse } from "next/server";
+
+import { withRoute } from "@/lib/api/response";
+import { getDatabaseHealth } from "@/lib/db/database-health";
 
 export const GET = withRoute(async () => {
-  await prisma.$queryRaw`SELECT 1`;
+  const health = await getDatabaseHealth();
 
-  return successResponse({
-    status: "ok",
-    database: "connected",
-    timestamp: new Date().toISOString()
-  });
+  return NextResponse.json(
+    {
+      success: health.ok,
+      data: {
+        status: health.ok ? "ok" : "degraded",
+        database: health.ok ? "connected" : "unavailable",
+        diagnostics: {
+          configured: health.diagnostics.configured,
+          provider: health.diagnostics.provider,
+          host: health.diagnostics.host,
+          database: health.diagnostics.database,
+          render: health.diagnostics.render,
+          usesSslMode: health.diagnostics.usesSslMode,
+          hint: health.diagnostics.hint
+        },
+        timestamp: new Date().toISOString()
+      },
+      message: health.ok ? "OK" : "Database unavailable",
+      meta: {}
+    },
+    { status: health.ok ? 200 : 503 }
+  );
 });

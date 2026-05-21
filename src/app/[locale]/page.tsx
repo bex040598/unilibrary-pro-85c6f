@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ResourceCard } from "@/components/catalog/resource-card";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { getDictionary } from "@/lib/i18n";
+import { getDatabaseHealth } from "@/lib/db/database-health";
 import { getOverviewStats } from "@/server/services/statistics-service";
 import { listResources } from "@/server/services/resource-service";
 import { prisma } from "@/lib/db/prisma";
@@ -52,8 +53,14 @@ async function getHomeData() {
       })
     ]);
 
-    return { stats, latest: latest.items, departments, rooms };
+    return { stats, latest: latest.items, departments, rooms, databaseOk: true, databaseHint: null as string | null };
   } catch {
+    const database = await getDatabaseHealth().catch(() => ({
+      ok: false,
+      diagnostics: { hint: "Database unavailable" },
+      error: "Database unavailable"
+    }));
+
     return {
       stats: {
         totalResources: 0,
@@ -68,7 +75,9 @@ async function getHomeData() {
       },
       latest: [],
       departments: [],
-      rooms: []
+      rooms: [],
+      databaseOk: false,
+      databaseHint: database.error ?? database.diagnostics.hint ?? "Database unavailable"
     };
   }
 }
@@ -80,10 +89,18 @@ export default async function HomePage({
 }) {
   const { locale } = await params;
   const dict = getDictionary(locale);
-  const { stats, latest, departments, rooms } = await getHomeData();
+  const { stats, latest, departments, rooms, databaseOk, databaseHint } = await getHomeData();
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-20 px-4 py-8 sm:px-6 lg:px-8">
+      {!databaseOk ? (
+        <Card className="border-danger/30 bg-danger/5 text-danger">
+          <p className="text-sm font-semibold">Database connection problem</p>
+          <p className="mt-2 text-sm text-foreground">
+            Platforma hozir ma'lumotlar bazasiga ulana olmayapti. {databaseHint ?? "Database unavailable"}.
+          </p>
+        </Card>
+      ) : null}
       <section className="grid gap-8 lg:grid-cols-[1.2fr,0.8fr] lg:items-center">
         <div className="space-y-8">
           <span className="inline-flex rounded-full border border-accent/30 bg-accent/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-primary">

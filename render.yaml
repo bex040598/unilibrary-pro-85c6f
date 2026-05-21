@@ -15,7 +15,7 @@ services:
     region: frankfurt
     rootDir: .
     buildCommand: npm install && npm run build
-    startCommand: node ./node_modules/prisma/build/index.js migrate deploy --schema prisma/schema.prisma && npm run start
+    startCommand: node scripts/render-start.mjs
     healthCheckPath: /api/health
     autoDeploy: true
     disk:
