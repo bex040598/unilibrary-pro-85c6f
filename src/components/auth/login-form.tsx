@@ -14,6 +14,30 @@ type LoginValues = {
   password: string;
 };
 
+function getLoginErrorMessage(status: number, payload: unknown) {
+  if (status === 401) {
+    return "Email yoki parol noto‘g‘ri";
+  }
+
+  if (status >= 500) {
+    return "Serverda vaqtinchalik xatolik yuz berdi. Iltimos, keyinroq urinib ko‘ring.";
+  }
+
+  if (
+    payload &&
+    typeof payload === "object" &&
+    "error" in payload &&
+    payload.error &&
+    typeof payload.error === "object" &&
+    "message" in payload.error &&
+    typeof payload.error.message === "string"
+  ) {
+    return payload.error.message;
+  }
+
+  return "Kirish jarayonida xatolik yuz berdi";
+}
+
 export function LoginForm({ locale }: { locale: string }) {
   const router = useRouter();
   const form = useForm<LoginValues>({
@@ -28,23 +52,27 @@ export function LoginForm({ locale }: { locale: string }) {
     <form
       className="space-y-4"
       onSubmit={form.handleSubmit(async (values) => {
-        const response = await fetch("/api/auth/login", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(values)
-        });
+        try {
+          const response = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(values)
+          });
 
-        const payload = await response.json();
-        if (!response.ok) {
-          toast.error(payload.error?.message ?? "Login failed");
-          return;
+          const payload = await response.json().catch(() => null);
+          if (!response.ok) {
+            toast.error(getLoginErrorMessage(response.status, payload));
+            return;
+          }
+
+          toast.success("Kirish muvaffaqiyatli");
+          router.push(`/${locale}/cabinet`);
+          router.refresh();
+        } catch {
+          toast.error("Serverda vaqtinchalik xatolik yuz berdi. Iltimos, keyinroq urinib ko‘ring.");
         }
-
-        toast.success("Kirish muvaffaqiyatli");
-        router.push(`/${locale}/cabinet`);
-        router.refresh();
       })}
     >
       <div className="space-y-2">
