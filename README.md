@@ -8,10 +8,12 @@ ATMU Smart UniLibrary Enterprise universitet elektron kutubxonasi, bosma kitobla
 - Resource detail with QR, citation, PDF preview, favorite, review, reservation, download tracking
 - Teacher upload wizard with `DRAFT -> PENDING_REVIEW`
 - Moderator review workspace with `APPROVED`, `REJECTED`, `NEEDS_REVISION`
+- Departments directory with search, faculty filter, detail page, and real database-backed resources
 - Reservation, pickup, loan, return, overdue, renewal workflows
 - Reading room booking with overlap protection
 - Admin CRUD APIs, audit logs, security logs, analytics, CSV export
 - Notification center for workflow-driven events
+- Role-specific dashboards for student, librarian, admin, and moderator
 - Storage abstraction for `local` and `s3`
 - PostgreSQL-first Prisma schema and Render Blueprint
 
@@ -55,7 +57,10 @@ Required core variables:
 
 - `DATABASE_URL`
 - `JWT_SECRET`
+- `AUTH_SECRET` as optional alias
 - `APP_URL`
+- `NEXT_PUBLIC_APP_URL`
+- `NEXT_PUBLIC_API_URL`
 - `STORAGE_PROVIDER`
 - `UPLOAD_DIR`
 - `MAX_UPLOAD_SIZE`
@@ -228,6 +233,23 @@ Recommended steps:
 
 `render.yaml` references the database connection string from the managed Render Postgres instance using `fromDatabase`.
 
+Render environment variables to set or verify:
+
+- `DATABASE_URL`
+- `JWT_SECRET`
+- `AUTH_SECRET`
+- `NODE_ENV=production`
+- `APP_URL=https://your-service.onrender.com`
+- `NEXT_PUBLIC_APP_URL=https://your-service.onrender.com`
+- `NEXT_PUBLIC_API_URL=https://your-service.onrender.com/api`
+- `STORAGE_PROVIDER=local` or `s3`
+- `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_REGION` when using object storage
+
+Recommended Render commands:
+
+- Build Command: `npm install && npm run build`
+- Start Command: `npm run start:render`
+
 ## Vercel Deployment
 
 Frontend deployment on Vercel is possible, but only after moving uploads to S3-compatible storage and using managed PostgreSQL. Local disk-backed uploads are not a good fit for Vercel serverless runtime.
@@ -258,6 +280,55 @@ Compose services:
 
 - If Prisma fails on Windows under a Unicode path, use the built-in wrapper scripts or `subst X:`
 - If `npm run db:migrate` fails, verify PostgreSQL is reachable from `DATABASE_URL`
+- If homepage shows `Database connection problem`, open Render logs and verify the final runtime has `DATABASE_URL`, `JWT_SECRET`, and a successful `prisma migrate deploy`
+- If `/api/health` returns `503`, inspect Render Postgres attachment, SSL mode in the connection string, and whether migrations were applied
+- If `/uz/catalog` or `/uz/departments` fails, confirm the database is seeded and `npm run start:render` is the active start command
+
+## Key Endpoints
+
+Departments:
+
+- `GET /api/departments`
+- `GET /api/departments/[id]`
+- `GET /api/departments/slug/[slug]`
+- `POST /api/departments`
+- `PATCH /api/departments/[id]`
+- `DELETE /api/departments/[id]`
+
+Student dashboard:
+
+- `GET /api/student/profile`
+- `GET /api/student/resources`
+- `GET /api/student/borrowings`
+- `GET /api/student/bookings`
+- `GET /api/student/recommendations`
+- `GET /api/student/notifications`
+
+Librarian dashboard:
+
+- `GET /api/librarian/profile`
+- `GET /api/librarian/resources`
+- `POST /api/librarian/resources`
+- `PATCH /api/librarian/resources/[id]`
+- `DELETE /api/librarian/resources/[id]`
+- `GET /api/librarian/borrowings`
+- `PATCH /api/librarian/borrowings/[id]/return`
+- `GET /api/librarian/bookings`
+- `PATCH /api/librarian/bookings/[id]/approve`
+- `PATCH /api/librarian/bookings/[id]/reject`
+- `GET /api/librarian/reports`
+
+## Post-deploy Checklist
+
+- `GET /api/health` returns `200`
+- `GET /api/departments` returns seeded departments
+- Student login redirects to `/uz/student/dashboard`
+- Librarian login redirects to `/uz/librarian/dashboard`
+- Admin login redirects to `/uz/admin/dashboard`
+- Moderator login redirects to `/uz/moderator/dashboard`
+- `Kafedralar` menu opens the real departments page
+- Homepage no longer shows the old zero-stat hero panel
+- `npm run build` passes in Render logs
 - If `npm run db:seed` fails in production, confirm `ALLOW_PRODUCTION_SEED=true` only when intentionally seeding
 - If upload access fails under `s3`, verify bucket credentials and endpoint format
 

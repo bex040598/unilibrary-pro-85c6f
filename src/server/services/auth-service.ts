@@ -17,7 +17,7 @@ export async function registerUser(input: {
 }) {
   const existing = await userRepository.findByEmail(input.email);
   if (existing) {
-    throw new AppError("CONFLICT", "Email is already registered", 409);
+    throw new AppError("CONFLICT", "Bu email allaqachon ro'yxatdan o'tgan", 409);
   }
 
   const passwordHash = await hashPassword(input.password);
@@ -58,7 +58,7 @@ export async function loginUser(input: { email: string; password: string; ipAddr
       ipAddress: input.ipAddress,
       userAgent: input.userAgent
     });
-    throw new AppError("UNAUTHORIZED", "Invalid credentials", 401);
+    throw new AppError("UNAUTHORIZED", "Email yoki parol noto'g'ri", 401);
   }
 
   if (user.status !== "ACTIVE") {
@@ -90,7 +90,7 @@ export async function loginUser(input: { email: string; password: string; ipAddr
       }))
     );
 
-    throw new AppError("FORBIDDEN", "Account is blocked or inactive", 403);
+    throw new AppError("FORBIDDEN", "Akkaunt bloklangan yoki faol emas", 403);
   }
 
   await prisma.user.update({
@@ -118,7 +118,7 @@ export async function changePassword(userId: string, input: { currentPassword: s
 
   const matches = await verifyPassword(input.currentPassword, user.passwordHash);
   if (!matches) {
-    throw new AppError("UNAUTHORIZED", "Current password is invalid", 401);
+    throw new AppError("UNAUTHORIZED", "Joriy parol noto'g'ri", 401);
   }
 
   const newPasswordHash = await hashPassword(input.newPassword);
@@ -138,7 +138,7 @@ export async function changePassword(userId: string, input: { currentPassword: s
 export async function requestPasswordReset(email: string) {
   const user = await userRepository.findByEmail(email);
   if (!user) {
-    return { message: "If the account exists, reset instructions were created." };
+    return { message: "Agar akkaunt mavjud bo'lsa, tiklash ko'rsatmalari yaratildi." };
   }
 
   const token = crypto.randomUUID();
@@ -161,7 +161,7 @@ export async function requestPasswordReset(email: string) {
   });
 
   return {
-    message: "Reset token generated for development mode.",
+    message: "Development rejimi uchun tiklash tokeni yaratildi.",
     resetToken: process.env.NODE_ENV === "production" ? undefined : token
   };
 }
@@ -174,7 +174,7 @@ export async function resetPassword(token: string, newPassword: string) {
   });
 
   if (!record || record.usedAt || record.expiresAt < new Date()) {
-    throw new AppError("UNAUTHORIZED", "Reset token is invalid or expired", 401);
+    throw new AppError("UNAUTHORIZED", "Tiklash tokeni noto'g'ri yoki muddati tugagan", 401);
   }
 
   const passwordHash = await hashPassword(newPassword);

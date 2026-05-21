@@ -49,6 +49,7 @@ export const seatReservationStatuses = ["BOOKED", "CHECKED_IN", "COMPLETED", "CA
 export const reviewStatuses = ["PENDING", "APPROVED", "REJECTED"] as const;
 
 export const roleRouteAccess: Record<string, Role[]> = {
+  student: ["STUDENT"],
   cabinet: ["STUDENT", "TEACHER", "DEPARTMENT_HEAD", "LIBRARIAN", "MODERATOR", "ADMIN"],
   teacher: ["TEACHER", "ADMIN"],
   "department-head": ["DEPARTMENT_HEAD", "ADMIN"],

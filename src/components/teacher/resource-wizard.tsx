@@ -61,13 +61,23 @@ export function TeacherResourceWizard({
   categories,
   faculties,
   departments,
-  resource
+  resource,
+  draftRedirectPath,
+  submitRedirectPath,
+  allowSubmitToReview = true,
+  draftButtonLabel = "Save draft",
+  submitButtonLabel = "Submit to review"
 }: {
   locale: string;
   categories: Option[];
   faculties: Option[];
   departments: Array<Option & { facultyId?: string }>;
   resource?: ResourceDraft;
+  draftRedirectPath?: string;
+  submitRedirectPath?: string;
+  allowSubmitToReview?: boolean;
+  draftButtonLabel?: string;
+  submitButtonLabel?: string;
 }) {
   const router = useRouter();
   const [step, setStep] = useState(0);
@@ -153,12 +163,12 @@ export function TeacherResourceWizard({
             throw new Error(submitResult.error?.message ?? "Submit failed");
           }
           toast.success("Moderator review uchun yuborildi");
-          router.push(`/${locale}/teacher/submissions`);
+          router.push(submitRedirectPath ?? `/${locale}/teacher/submissions`);
           router.refresh();
           return;
         }
 
-        router.push(`/${locale}/teacher/resources`);
+        router.push(draftRedirectPath ?? `/${locale}/teacher/resources`);
         router.refresh();
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Unknown error");
@@ -314,17 +324,22 @@ export function TeacherResourceWizard({
         </Button>
         <div className="flex flex-wrap gap-3">
           <Button type="button" variant="secondary" disabled={isPending} onClick={() => saveDraft(false)}>
-            Save draft
+            {draftButtonLabel}
           </Button>
           {step < steps.length - 1 ? (
             <Button type="button" disabled={isPending} onClick={() => setStep((current) => Math.min(steps.length - 1, current + 1))}>
               Next
             </Button>
-          ) : (
+          ) : allowSubmitToReview ? (
             <Button type="button" disabled={isPending} onClick={() => saveDraft(true)}>
-              Submit to review
+              {submitButtonLabel}
             </Button>
-          )}
+          ) : null}
+          {!allowSubmitToReview && step === steps.length - 1 ? (
+            <Button type="button" disabled={isPending} onClick={() => saveDraft(false)}>
+              Resursni saqlash
+            </Button>
+          ) : null}
         </div>
       </div>
     </div>

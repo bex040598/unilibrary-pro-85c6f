@@ -80,6 +80,8 @@ async function main() {
   await prisma.resource.deleteMany();
   await prisma.author.deleteMany();
   await prisma.category.deleteMany();
+  await prisma.studentProfile.deleteMany();
+  await prisma.librarianProfile.deleteMany();
   await prisma.user.deleteMany();
   await prisma.department.deleteMany();
   await prisma.faculty.deleteMany();
@@ -88,9 +90,9 @@ async function main() {
 
   const faculties = await Promise.all(
     [
-      ["Axborot texnologiyalari", "Информационные технологии", "Information Technologies", "it-faculty"],
-      ["Iqtisodiyot va menejment", "Экономика и менеджмент", "Economics and Management", "economics-management"],
-      ["Muhandislik", "Инженерия", "Engineering", "engineering"]
+      ["Axborot texnologiyalari", "Informatsionnye tekhnologii", "Information Technologies", "it-faculty"],
+      ["Iqtisodiyot va menejment", "Ekonomika i menedzhment", "Economics and Management", "economics-management"],
+      ["Muhandislik", "Inzheneriya", "Engineering", "engineering"]
     ].map(([nameUz, nameRu, nameEn, slug]) =>
       prisma.faculty.create({
         data: { nameUz, nameRu, nameEn, slug }
@@ -99,19 +101,103 @@ async function main() {
   );
 
   const departmentSpecs = [
-    [faculties[0].id, "Dasturiy injiniring", "Программная инженерия", "Software Engineering", "software-engineering"],
-    [faculties[0].id, "Sun'iy intellekt", "Искусственный интеллект", "Artificial Intelligence", "artificial-intelligence"],
-    [faculties[0].id, "Kiberxavfsizlik", "Кибербезопасность", "Cybersecurity", "cybersecurity"],
-    [faculties[1].id, "Menejment", "Менеджмент", "Management", "management"],
-    [faculties[1].id, "Buxgalteriya va audit", "Бухгалтерия и аудит", "Accounting and Audit", "accounting-audit"],
-    [faculties[2].id, "Elektr energetikasi", "Электроэнергетика", "Electrical Engineering", "electrical-engineering"],
-    [faculties[2].id, "Sanoat texnologiyalari", "Промышленные технологии", "Industrial Technologies", "industrial-technologies"]
+    {
+      facultyId: faculties[0].id,
+      nameUz: "Axborot texnologiyalari",
+      nameRu: "Informatsionnye tekhnologii",
+      nameEn: "Information Technologies",
+      slug: "axborot-texnologiyalari",
+      code: "AT-01",
+      headName: "Prof. Azizbek Karimov",
+      email: "it.department@atmu.uz",
+      phone: "+998 71 200 00 11",
+      room: "A-301",
+      description: "Universitetning amaliy IT, dasturlash va axborot tizimlari yonalishlari boyicha tayanch kafedrasi."
+    },
+    {
+      facultyId: faculties[0].id,
+      nameUz: "Dasturiy injiniring",
+      nameRu: "Programmnaya injeneriya",
+      nameEn: "Software Engineering",
+      slug: "dasturiy-injiniring",
+      code: "SE-02",
+      headName: "Dots. Nodir Tursunov",
+      email: "se.department@atmu.uz",
+      phone: "+998 71 200 00 12",
+      room: "A-305",
+      description: "Full-stack development, software architecture va enterprise platformalar boyicha akademik markaz."
+    },
+    {
+      facultyId: faculties[1].id,
+      nameUz: "Raqamli iqtisodiyot",
+      nameRu: "Tsifrovaya ekonomika",
+      nameEn: "Digital Economy",
+      slug: "raqamli-iqtisodiyot",
+      code: "DE-03",
+      headName: "Prof. Dilnoza Ergasheva",
+      email: "de.department@atmu.uz",
+      phone: "+998 71 200 00 13",
+      room: "B-201",
+      description: "Raqamli transformatsiya, iqtisodiy tahlil va data-driven boshqaruv boyicha resurslar markazi."
+    },
+    {
+      facultyId: faculties[0].id,
+      nameUz: "Sun'iy intellekt va ma'lumotlar tahlili",
+      nameRu: "Iskusstvennyy intellekt i analitika dannykh",
+      nameEn: "Artificial Intelligence and Data Analytics",
+      slug: "suniy-intellekt-va-malumotlar-tahlili",
+      code: "AI-04",
+      headName: "Prof. Bahrom Raxmonov",
+      email: "ai.department@atmu.uz",
+      phone: "+998 71 200 00 14",
+      room: "A-401",
+      description: "Machine learning, suniy intellekt va malumotlar tahlili boyicha zamonaviy oquv-uslubiy platforma."
+    },
+    {
+      facultyId: faculties[2].id,
+      nameUz: "Kompyuter tizimlari va tarmoqlari",
+      nameRu: "Kompyuternye sistemy i seti",
+      nameEn: "Computer Systems and Networks",
+      slug: "kompyuter-tizimlari-va-tarmoqlari",
+      code: "CN-05",
+      headName: "Dots. Rustam Xasanov",
+      email: "net.department@atmu.uz",
+      phone: "+998 71 200 00 15",
+      room: "C-112",
+      description: "Kompyuter tarmoqlari, server infratuzilmasi va amaliy laboratoriyalar boyicha xizmat qiluvchi kafedra."
+    },
+    {
+      facultyId: faculties[1].id,
+      nameUz: "Menejment",
+      nameRu: "Menedzhment",
+      nameEn: "Management",
+      slug: "management",
+      code: "MG-06",
+      headName: "Dots. Maftuna Qosimova",
+      email: "management@atmu.uz",
+      phone: "+998 71 200 00 16",
+      room: "B-210",
+      description: "Boshqaruv, liderlik va tashkilot samaradorligi boyicha metodik resurslar markazi."
+    },
+    {
+      facultyId: faculties[2].id,
+      nameUz: "Kiberxavfsizlik",
+      nameRu: "Kiberbezopasnost",
+      nameEn: "Cybersecurity",
+      slug: "cybersecurity",
+      code: "CS-07",
+      headName: "Prof. Komil Ibrohimov",
+      email: "cyber@atmu.uz",
+      phone: "+998 71 200 00 17",
+      room: "C-118",
+      description: "Axborot xavfsizligi, tarmoq himoyasi va audit boyicha talim resurslarini yuritadi."
+    }
   ] as const;
 
   const departments = await Promise.all(
-    departmentSpecs.map(([facultyId, nameUz, nameRu, nameEn, slug]) =>
+    departmentSpecs.map((item) =>
       prisma.department.create({
-        data: { facultyId, nameUz, nameRu, nameEn, slug }
+        data: item
       })
     )
   );
@@ -154,7 +240,7 @@ async function main() {
     )
   );
 
-  const passwordHashes = await Promise.all([
+  const [adminHash, librarianHash, moderatorHash, teacherHash, studentHash, departmentHash] = await Promise.all([
     hashPassword("Admin12345!"),
     hashPassword("Librarian12345!"),
     hashPassword("Moderator12345!"),
@@ -162,8 +248,6 @@ async function main() {
     hashPassword("Student12345!"),
     hashPassword("Department12345!")
   ]);
-
-  const [adminHash, librarianHash, moderatorHash, teacherHash, studentHash, departmentHash] = passwordHashes;
 
   const admin = await prisma.user.create({
     data: {
@@ -193,6 +277,15 @@ async function main() {
       })
     )
   );
+
+  await prisma.librarianProfile.createMany({
+    data: librarians.map((librarian, index) => ({
+      userId: librarian.id,
+      position: index === 0 ? "Bosh kutubxonachi" : "Kutubxonachi",
+      department: departments[index]?.nameUz ?? departments[0].nameUz,
+      phone: `+998 90 500 00 ${String(index + 1).padStart(2, "0")}`
+    }))
+  });
 
   const moderators = await Promise.all(
     ["moderator@atmu.uz", "moderator2@atmu.uz"].map((email, index) =>
@@ -228,22 +321,18 @@ async function main() {
     )
   );
 
-  const departmentHeads = await Promise.all(
-    Array.from({ length: 2 }, (_, index) =>
-      prisma.user.create({
-        data: {
-          fullName: `Department Head ${index + 1}`,
-          email: index === 0 ? "department@atmu.uz" : `department${index + 2}@atmu.uz`,
-          passwordHash: departmentHash,
-          role: "DEPARTMENT_HEAD",
-          status: "ACTIVE",
-          facultyId: faculties[index].id,
-          departmentId: departments[index].id,
-          employeeId: `DPT-${index + 1}`
-        }
-      })
-    )
-  );
+  await prisma.user.createMany({
+    data: Array.from({ length: 2 }, (_, index) => ({
+      fullName: `Department Head ${index + 1}`,
+      email: index === 0 ? "department@atmu.uz" : `department${index + 2}@atmu.uz`,
+      passwordHash: departmentHash,
+      role: "DEPARTMENT_HEAD",
+      status: "ACTIVE",
+      facultyId: faculties[index].id,
+      departmentId: departments[index].id,
+      employeeId: `DPT-${index + 1}`
+    }))
+  });
 
   const students = await Promise.all(
     Array.from({ length: 10 }, (_, index) =>
@@ -262,6 +351,16 @@ async function main() {
     )
   );
 
+  await prisma.studentProfile.createMany({
+    data: students.map((student, index) => ({
+      userId: student.id,
+      group: `SE-${24 + (index % 3)}-${(index % 2) + 1}`,
+      faculty: faculties[index % faculties.length].nameUz,
+      direction: departments[index % departments.length].nameUz,
+      studentNumber: `ATMU-${2026}-${1000 + index}`
+    }))
+  });
+
   const resources = [];
 
   for (let index = 0; index < 30; index += 1) {
@@ -278,7 +377,7 @@ async function main() {
       data: {
         title,
         slug: `${slugify(title)}-${index + 1}`,
-        description: `${title} bo'yicha batafsil tavsif.`,
+        description: `${title} boyicha batafsil tavsif.`,
         abstract: `${title} uchun ilmiy abstrakt.`,
         keywords: "atmu, library, resource, university",
         categoryId: categories[index % categories.length].id,
@@ -341,7 +440,14 @@ async function main() {
   const readingRooms = await Promise.all(
     readingRoomSpecs.map(([name, floor, capacity, openingTime, closingTime]) =>
       prisma.readingRoom.create({
-        data: { name, floor, capacity, openingTime, closingTime, status: "ACTIVE" }
+        data: {
+          name,
+          floor,
+          capacity,
+          openingTime,
+          closingTime,
+          status: "ACTIVE"
+        }
       })
     )
   );
@@ -362,14 +468,14 @@ async function main() {
     }
   }
 
-  const reservations = [];
   for (let index = 0; index < 10; index += 1) {
     const copy = bookCopies[index];
     await prisma.bookCopy.update({
       where: { id: copy.id },
       data: { status: "RESERVED" }
     });
-    const reservation = await prisma.reservation.create({
+
+    await prisma.reservation.create({
       data: {
         userId: students[index % students.length].id,
         resourceId: copy.resourceId,
@@ -380,10 +486,8 @@ async function main() {
         qrCode: `RSV-${index + 1}`
       }
     });
-    reservations.push(reservation);
   }
 
-  const loans = [];
   for (let index = 0; index < 10; index += 1) {
     const copy = bookCopies[index + 10];
     await prisma.bookCopy.update({
@@ -391,7 +495,7 @@ async function main() {
       data: { status: index < 7 ? "BORROWED" : "AVAILABLE" }
     });
     const status = index < 3 ? "ACTIVE" : index < 6 ? "OVERDUE" : "RETURNED";
-    const loan = await prisma.loan.create({
+    await prisma.loan.create({
       data: {
         userId: students[(index + 2) % students.length].id,
         resourceId: copy.resourceId,
@@ -404,7 +508,6 @@ async function main() {
         fineAmount: status === "OVERDUE" ? 15000 : 0
       }
     });
-    loans.push(loan);
   }
 
   for (let index = 0; index < 20; index += 1) {
@@ -425,6 +528,7 @@ async function main() {
       _avg: { rating: true },
       _count: { rating: true }
     });
+
     await prisma.resource.update({
       where: { id: resource.id },
       data: {

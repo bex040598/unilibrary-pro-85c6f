@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
 import { loginSchema } from "@/lib/validation/auth";
+import { getRoleDashboardPath } from "@/lib/role-dashboard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -16,11 +17,11 @@ type LoginValues = {
 
 function getLoginErrorMessage(status: number, payload: unknown) {
   if (status === 401) {
-    return "Email yoki parol noto‘g‘ri";
+    return "Email yoki parol noto'g'ri";
   }
 
   if (status >= 500) {
-    return "Serverda vaqtinchalik xatolik yuz berdi. Iltimos, keyinroq urinib ko‘ring.";
+    return "Serverda vaqtinchalik xatolik yuz berdi. Iltimos, keyinroq urinib ko'ring.";
   }
 
   if (
@@ -68,10 +69,12 @@ export function LoginForm({ locale }: { locale: string }) {
           }
 
           toast.success("Kirish muvaffaqiyatli");
-          router.push(`/${locale}/cabinet`);
+          router.push(
+            payload?.data?.role ? getRoleDashboardPath(locale, payload.data.role) : payload?.data?.redirectTo ?? `/${locale}/student/dashboard`
+          );
           router.refresh();
         } catch {
-          toast.error("Serverda vaqtinchalik xatolik yuz berdi. Iltimos, keyinroq urinib ko‘ring.");
+          toast.error("Serverda vaqtinchalik xatolik yuz berdi. Iltimos, keyinroq urinib ko'ring.");
         }
       })}
     >

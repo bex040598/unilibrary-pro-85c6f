@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getDictionary } from "@/lib/i18n";
 import { getCurrentUser } from "@/lib/permissions/rbac";
 import { ThemeSwitch } from "@/components/layout/theme-switch";
+import { UserControls } from "@/components/auth/user-controls";
+import { getRoleDashboardPath } from "@/lib/role-dashboard";
 
 export async function SiteShell({
   locale,
@@ -13,6 +15,7 @@ export async function SiteShell({
 }) {
   const dict = getDictionary(locale);
   const user = await getCurrentUser();
+  const profilePath = user ? getRoleDashboardPath(locale, user.role) : `/${locale}/auth/login`;
 
   return (
     <div className="min-h-screen">
@@ -25,8 +28,8 @@ export async function SiteShell({
               <Link href="/ru">RU</Link>
               <Link href="/en">EN</Link>
             </div>
-            <Link href={`/${locale}/auth/login`}>{dict.nav.login}</Link>
-            <Link href={`/${locale}/admin`}>{dict.nav.admin}</Link>
+            {user ? <Link href={profilePath}>Profilim</Link> : <Link href={`/${locale}/auth/login`}>{dict.nav.login}</Link>}
+            <Link href={`/${locale}/admin/dashboard`}>{dict.nav.admin}</Link>
             <Link href={`/${locale}#contact`}>{dict.nav.contact}</Link>
           </div>
         </div>
@@ -41,20 +44,13 @@ export async function SiteShell({
           </div>
           <nav className="hidden items-center gap-6 text-sm lg:flex">
             <Link href={`/${locale}/catalog`}>{dict.nav.catalog}</Link>
-            <Link href={`/${locale}`}>{dict.nav.departments}</Link>
+            <Link href={`/${locale}/kafedralar`}>{dict.nav.departments}</Link>
             <Link href={`/${locale}`}>{dict.nav.readingRoom}</Link>
             <Link href={`/${locale}`}>{dict.nav.aiSearch}</Link>
             <Link href={`/${locale}`}>{dict.nav.help}</Link>
           </nav>
           <div className="flex items-center gap-3">
-            {user ? (
-              <Link
-                href={`/${locale}/${user.role === "STUDENT" ? "cabinet" : user.role.toLowerCase().replaceAll("_", "-")}`}
-                className="rounded-full border border-border bg-surface px-4 py-2 text-sm font-medium"
-              >
-                {user.fullName}
-              </Link>
-            ) : null}
+            {user ? <UserControls locale={locale} profilePath={profilePath} /> : null}
             <ThemeSwitch />
           </div>
         </div>

@@ -18,6 +18,8 @@ export function paginatedResponse<T>(data: T[], page: number, limit: number, tot
 }
 
 export function errorResponse(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+
   if (error instanceof AppError) {
     return NextResponse.json(
       {
@@ -38,11 +40,32 @@ export function errorResponse(error: unknown) {
         success: false,
         error: {
           code: "VALIDATION_ERROR",
-          message: "Invalid input",
+          message: "Kiritilgan ma'lumotlarda xatolik bor",
           details: error.flatten()
         }
       },
       { status: 400 }
+    );
+  }
+
+  if (
+    message.includes("DATABASE_URL") ||
+    message.includes("Can't reach database server") ||
+    message.includes("PrismaClientInitializationError") ||
+    message.includes("Environment variable not found")
+  ) {
+    console.error(error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: "DATABASE_UNAVAILABLE",
+          message: "Ma'lumotlar bazasiga ulanishda muammo yuz berdi",
+          details: {}
+        }
+      },
+      { status: 503 }
     );
   }
 
@@ -53,7 +76,7 @@ export function errorResponse(error: unknown) {
       success: false,
       error: {
         code: "INTERNAL_ERROR",
-        message: "Unexpected server error",
+        message: "Serverda vaqtinchalik xatolik yuz berdi",
         details: {}
       }
     },

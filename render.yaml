@@ -33,7 +33,13 @@ services:
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
+      - key: AUTH_SECRET
+        sync: false
       - key: APP_URL
+        sync: false
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false
+      - key: NEXT_PUBLIC_API_URL
         sync: false
       - key: STORAGE_PROVIDER
         value: local

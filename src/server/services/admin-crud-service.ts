@@ -6,6 +6,24 @@ import { writeAuditLog } from "@/server/services/audit-service";
 
 type AdminEntity = "users" | "categories" | "faculties" | "departments" | "announcements" | "settings" | "book-copies" | "resources";
 
+function normalizeDepartmentPayload(payload: Record<string, unknown>) {
+  return {
+    facultyId: String(payload.facultyId),
+    nameUz: String(payload.nameUz),
+    nameRu: String(payload.nameRu),
+    nameEn: String(payload.nameEn),
+    slug: String(payload.slug),
+    code: payload.code ? String(payload.code) : null,
+    headName: payload.headName ? String(payload.headName) : null,
+    email: payload.email ? String(payload.email) : null,
+    phone: payload.phone ? String(payload.phone) : null,
+    room: payload.room ? String(payload.room) : null,
+    description: payload.description ? String(payload.description) : null,
+    imageUrl: payload.imageUrl ? String(payload.imageUrl) : null,
+    isActive: payload.isActive === true || payload.isActive === "true"
+  };
+}
+
 export async function listAdminEntity(
   entity: AdminEntity,
   query: { q?: string; page: number; limit: number; status?: string; role?: string; facultyId?: string; resourceType?: string; accessType?: string }
@@ -51,7 +69,13 @@ export async function listAdminEntity(
         ...(query.facultyId ? { facultyId: query.facultyId } : {})
       };
       const [items, total] = await prisma.$transaction([
-        prisma.department.findMany({ where, orderBy: { createdAt: "desc" }, skip, take: query.limit }),
+        prisma.department.findMany({
+          where,
+          include: { faculty: true },
+          orderBy: { createdAt: "desc" },
+          skip,
+          take: query.limit
+        }),
         prisma.department.count({ where })
       ]);
       return { items, meta: buildPagination(query.page, query.limit, total) };
@@ -128,7 +152,7 @@ export async function createAdminEntity(entity: AdminEntity, payload: Record<str
       created = await prisma.faculty.create({ data: payload as never });
       break;
     case "departments":
-      created = await prisma.department.create({ data: payload as never });
+      created = await prisma.department.create({ data: normalizeDepartmentPayload(payload) });
       break;
     case "announcements":
       created = await prisma.announcement.create({ data: payload as never });
@@ -185,7 +209,7 @@ export async function updateAdminEntity(entity: AdminEntity, id: string, payload
       updated = await prisma.faculty.update({ where: { id }, data: payload as never });
       break;
     case "departments":
-      updated = await prisma.department.update({ where: { id }, data: payload as never });
+      updated = await prisma.department.update({ where: { id }, data: normalizeDepartmentPayload(payload) });
       break;
     case "announcements":
       updated = await prisma.announcement.update({ where: { id }, data: payload as never });

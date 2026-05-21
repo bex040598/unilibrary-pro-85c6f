@@ -125,13 +125,30 @@ function getEntityConfig(entity: EntityName, auxiliary: Props["auxiliary"]) {
       };
     case "departments":
       return {
-        columns: ["nameUz", "slug", "facultyId"],
+        columns: ["nameUz", "code", "faculty", "headName", "email", "isActive"],
         fields: [
           { name: "facultyId", label: "Faculty", type: "select", required: true, options: auxiliary.faculties ?? [] },
           { name: "nameUz", label: "Name UZ", required: true },
           { name: "nameRu", label: "Name RU", required: true },
           { name: "nameEn", label: "Name EN", required: true },
-          { name: "slug", label: "Slug", required: true }
+          { name: "slug", label: "Slug", required: true },
+          { name: "code", label: "Code" },
+          { name: "headName", label: "Head name" },
+          { name: "email", label: "Email", type: "email" },
+          { name: "phone", label: "Phone" },
+          { name: "room", label: "Room" },
+          { name: "description", label: "Description", type: "textarea" },
+          { name: "imageUrl", label: "Image URL" },
+          {
+            name: "isActive",
+            label: "Is active",
+            type: "select",
+            required: true,
+            options: [
+              { value: "true", label: "Active" },
+              { value: "false", label: "Inactive" }
+            ]
+          }
         ] satisfies FieldConfig[],
         filters: [{ key: "facultyId", label: "Faculty", options: [{ value: "", label: "All faculties" }, ...(auxiliary.faculties ?? [])] }] satisfies FilterConfig[]
       };

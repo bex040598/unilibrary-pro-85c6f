@@ -14,10 +14,10 @@ const allowedSections = ["favorites", "history", "downloads", "reservations", "l
 export default async function CabinetSectionPage({
   params
 }: {
-  params: Promise<{ section: string }>;
+  params: Promise<{ locale: string; section: string }>;
 }) {
-  const user = await requirePageRole("cabinet");
-  const { section } = await params;
+  const { locale, section } = await params;
+  const user = await requirePageRole("student", locale);
 
   if (!allowedSections.includes(section as (typeof allowedSections)[number])) {
     notFound();

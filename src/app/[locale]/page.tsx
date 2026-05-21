@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { BookOpenText, BrainCircuit, CalendarDays, LibraryBig, Sparkles } from "lucide-react";
+import { BookOpenText, BrainCircuit, CalendarDays, LibraryBig, ShieldCheck, Sparkles } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -101,7 +101,7 @@ export default async function HomePage({
           </p>
         </Card>
       ) : null}
-      <section className="grid gap-8 lg:grid-cols-[1.2fr,0.8fr] lg:items-center">
+      <section className="grid gap-8 lg:grid-cols-[1.15fr,0.85fr] lg:items-center">
         <div className="space-y-8">
           <span className="inline-flex rounded-full border border-accent/30 bg-accent/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-primary">
             {dict.home.badge}
@@ -133,16 +133,30 @@ export default async function HomePage({
         </div>
         <Card className="relative overflow-hidden border-primary/10 bg-[linear-gradient(135deg,rgba(11,45,77,0.98),rgba(30,90,168,0.84))] text-white">
           <div className="absolute inset-0 bg-grid bg-[size:34px_34px] opacity-10" />
-          <div className="relative grid gap-4 sm:grid-cols-2">
-            <StatCard label="Jami resurslar" value={stats.totalResources} hint="Real katalog hajmi" />
-            <StatCard label="Bugungi yuklab olishlar" value={stats.todayDownloads} hint="Kunlik faollik" />
-            <StatCard label="Bo'sh o'quv zali joylari" value={Math.max(0, 50 - stats.readingOccupancy)} hint="Hozirgi bandlik" />
-            <StatCard label="Overdue kitoblar" value={stats.overdueBooks} hint="Nazorat talab qilinadi" />
-            <StatCard label="Pending approvals" value={stats.pendingResources} hint="Moderator navbati" />
-            <Card className="bg-white/10 text-white">
-              <p className="text-sm text-white/70">AI tavsiya preview</p>
-              <p className="mt-3 text-lg font-semibold">Sizning yo'nalishingizga mos 12 ta yangi resurs topildi</p>
-            </Card>
+          <div className="relative space-y-5 p-1">
+            <div className="rounded-[28px] border border-white/15 bg-white/10 p-6 backdrop-blur">
+              <p className="text-sm uppercase tracking-[0.24em] text-white/70">Smart UniLibrary</p>
+              <h2 className="mt-3 text-2xl font-semibold">ATMU uchun yagona akademik platforma</h2>
+              <p className="mt-3 text-sm leading-7 text-white/80">
+                Elektron katalog, kafedra resurslari, kutubxona aylanmasi va o'quv zali boshqaruvi yagona ekotizimda jamlangan.
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {[
+                ["Katalog", "Darsliklar, maqolalar va metodik qo'llanmalar"],
+                ["Kafedralar", "Har bir bo'lim bo'yicha resurs markazlari"],
+                ["Kutubxona aylanmasi", "Band qilish, qaytarish va overdue nazorati"],
+                ["Xavfsiz kirish", "Role-based auth va professional boshqaruv"]
+              ].map(([title, description], index) => (
+                <div key={title} className="rounded-[24px] border border-white/15 bg-white/10 p-5">
+                  <div className="mb-3 inline-flex rounded-2xl bg-white/15 p-3">
+                    {index === 3 ? <ShieldCheck className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
+                  </div>
+                  <p className="font-semibold">{title}</p>
+                  <p className="mt-2 text-sm text-white/75">{description}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </Card>
       </section>
@@ -158,11 +172,13 @@ export default async function HomePage({
         ))}
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <StatCard label="Aktiv foydalanuvchilar" value={stats.totalUsers} />
-        <StatCard label="Band qilingan kitoblar" value={stats.activeLoans} />
-        <StatCard label="Failed login attempts" value={stats.failedLogins} />
-      </section>
+      {databaseOk ? (
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <StatCard label="Aktiv foydalanuvchilar" value={stats.totalUsers} />
+          <StatCard label="Band qilingan kitoblar" value={stats.activeLoans} />
+          <StatCard label="Failed login attempts" value={stats.failedLogins} />
+        </section>
+      ) : null}
 
       <section className="space-y-6">
         <div className="flex items-center justify-between">
@@ -199,7 +215,9 @@ export default async function HomePage({
                 </span>
               </div>
               <p className="text-sm text-muted-foreground">Eng faol fan va oxirgi yangilanish statistikasi keyingi sprintlarda chuqurlashtiriladi.</p>
-              <Button variant="secondary">Kafedra kutubxonasiga kirish</Button>
+              <Link href={`/${locale}/kafedralar/${department.slug}`}>
+                <Button variant="secondary">Kafedra kutubxonasiga kirish</Button>
+              </Link>
             </Card>
           ))}
         </div>

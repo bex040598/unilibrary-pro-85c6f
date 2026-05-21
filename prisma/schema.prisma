@@ -40,6 +40,8 @@ model User {
   notifications     Notification[]
   seatReservations  SeatReservation[]
   passwordResets    PasswordResetToken[]
+  studentProfile    StudentProfile?
+  librarianProfile  LibrarianProfile?
 
   @@index([role])
   @@index([status])
@@ -67,6 +69,14 @@ model Department {
   nameRu      String
   nameEn      String
   slug        String       @unique
+  code        String?      @unique
+  headName    String?
+  email       String?
+  phone       String?
+  room        String?
+  description String?
+  imageUrl    String?
+  isActive    Boolean      @default(true)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   faculty     Faculty      @relation(fields: [facultyId], references: [id], onDelete: Cascade)
@@ -74,6 +84,29 @@ model Department {
   resources   Resource[]
 
   @@index([facultyId])
+}
+
+model StudentProfile {
+  id            String   @id @default(cuid())
+  userId         String   @unique
+  group          String?
+  faculty        String?
+  direction      String?
+  studentNumber  String?  @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LibrarianProfile {
+  id         String   @id @default(cuid())
+  userId      String   @unique
+  position    String?
+  department  String?
+  phone       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Category {

@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
 
 import type { Role } from "@/lib/constants";
-import { roleRouteAccess } from "@/lib/constants";
+import { defaultLocale, roleRouteAccess } from "@/lib/constants";
 import { AppError } from "@/lib/errors/app-error";
 import { getSessionFromCookies } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
+import { getRoleDashboardPath } from "@/lib/role-dashboard";
 
 export async function getCurrentUser() {
   const session = await getSessionFromCookies();
@@ -42,14 +43,14 @@ export async function requireRole(allowed: Role[]) {
   return user;
 }
 
-export async function requirePageRole(segment: keyof typeof roleRouteAccess) {
+export async function requirePageRole(segment: keyof typeof roleRouteAccess, locale = defaultLocale) {
   const user = await getCurrentUser();
   if (!user) {
-    redirect("/uz/auth/login");
+    redirect(`/${locale}/auth/login`);
   }
 
   if (!roleRouteAccess[segment].includes(user.role as Role)) {
-    redirect("/uz");
+    redirect(getRoleDashboardPath(locale, user.role));
   }
 
   return user;

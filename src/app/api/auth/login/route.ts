@@ -4,6 +4,7 @@ import { loginUser } from "@/server/services/auth-service";
 import { createSessionToken, getAuthCookieOptions, authCookieName } from "@/lib/auth/session";
 import { getRequestMeta } from "@/lib/security/request-meta";
 import { enforceRateLimit } from "@/lib/security/rate-limit";
+import { getRoleDashboardPath } from "@/lib/role-dashboard";
 
 export const POST = withRoute(async (request: Request) => {
   const payload = await parseBody(request, loginSchema);
@@ -21,9 +22,10 @@ export const POST = withRoute(async (request: Request) => {
       id: user.id,
       fullName: user.fullName,
       email: user.email,
-      role: user.role
+      role: user.role,
+      redirectTo: getRoleDashboardPath("uz", user.role)
     },
-    "Logged in"
+    "Kirish muvaffaqiyatli"
   );
 
   response.cookies.set(authCookieName, token, getAuthCookieOptions());
