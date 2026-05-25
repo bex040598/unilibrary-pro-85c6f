@@ -27,12 +27,30 @@ export default async function LibrarianProfilePage({
         <StatCard label="Bildirishnomalar" value={profile.summary.unreadNotifications} />
       </div>
       <Card className="grid gap-4 md:grid-cols-2">
-        <div><p className="text-xs uppercase tracking-wide text-muted-foreground">Ism familiya</p><p className="mt-1 font-medium">{profile.summary.fullName}</p></div>
-        <div><p className="text-xs uppercase tracking-wide text-muted-foreground">Email</p><p className="mt-1 font-medium">{profile.summary.email}</p></div>
-        <div><p className="text-xs uppercase tracking-wide text-muted-foreground">Lavozim</p><p className="mt-1 font-medium">{profile.summary.position ?? "Kutubxonachi"}</p></div>
-        <div><p className="text-xs uppercase tracking-wide text-muted-foreground">Mas’ul bo‘lim</p><p className="mt-1 font-medium">{profile.summary.department ?? "Biriktirilmagan"}</p></div>
-        <div><p className="text-xs uppercase tracking-wide text-muted-foreground">Employee ID</p><p className="mt-1 font-medium">{profile.summary.employeeId ?? "Kiritilmagan"}</p></div>
-        <div><p className="text-xs uppercase tracking-wide text-muted-foreground">Telefon</p><p className="mt-1 font-medium">{profile.summary.phone ?? "Kiritilmagan"}</p></div>
+        <div>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">F.I.Sh.</p>
+          <p className="mt-1 font-medium">{profile.summary.fullName}</p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Email</p>
+          <p className="mt-1 font-medium">{profile.summary.email}</p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Lavozim</p>
+          <p className="mt-1 font-medium">{profile.summary.position ?? "Kutubxonachi"}</p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Mas’ul bo‘lim</p>
+          <p className="mt-1 font-medium">{profile.summary.department ?? "Biriktirilmagan"}</p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Employee ID</p>
+          <p className="mt-1 font-medium">{profile.summary.employeeId ?? "Kiritilmagan"}</p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Telefon</p>
+          <p className="mt-1 font-medium">{profile.summary.phone ?? "Kiritilmagan"}</p>
+        </div>
       </Card>
     </div>
   );

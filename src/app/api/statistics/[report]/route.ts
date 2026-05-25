@@ -17,6 +17,8 @@ export const GET = withRoute(async (_request: Request, context: { params: Promis
       return successResponse(analytics.viewsByMonth);
     case "active-users":
       return successResponse(analytics.activeUsers);
+    case "top-resources":
+      return successResponse(analytics.topResources);
     case "departments":
       return successResponse(analytics.departmentActivity);
     case "faculties":

@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync, rmSync } from "node:fs";
 import path from "node:path";
 
 const args = process.argv.slice(2);
@@ -55,11 +55,20 @@ async function main() {
   await withMappedDrive(async (mappedCwd) => {
     const env = { ...process.env };
     const prismaBin = path.join(mappedCwd, "node_modules", "prisma", "build", "index.js");
+    const prismaClientDir = path.join(mappedCwd, "node_modules", ".prisma", "client");
 
     if (!env.DATABASE_URL) {
       env.DATABASE_URL = args.some((value) => value.endsWith("schema.sqlite.prisma"))
         ? "file:./dev.db"
         : "postgresql://postgres:postgres@localhost:5432/unilibrary?schema=public";
+    }
+
+    if (args[0] === "generate" && existsSync(prismaClientDir)) {
+      for (const file of readdirSync(prismaClientDir)) {
+        if (file.startsWith("query_engine-windows.dll.node")) {
+          rmSync(path.join(prismaClientDir, file), { force: true });
+        }
+      }
     }
 
     await run(process.execPath, [prismaBin, ...args], { cwd: mappedCwd, env });

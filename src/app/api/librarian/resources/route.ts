@@ -1,6 +1,6 @@
 import { withRoute, successResponse } from "@/lib/api/response";
 import { requireRole } from "@/lib/permissions/rbac";
-import { resourceInputSchema } from "@/lib/validation/resource";
+import { parseResourceFormData } from "@/lib/api/resource-form";
 import { createLibrarianResource, listLibrarianResources } from "@/server/services/librarian-dashboard-service";
 
 export const GET = withRoute(async () => {
@@ -11,7 +11,7 @@ export const GET = withRoute(async () => {
 
 export const POST = withRoute(async (request: Request) => {
   const user = await requireRole(["LIBRARIAN", "ADMIN"]);
-  const payload = resourceInputSchema.parse(await request.json());
-  const resource = await createLibrarianResource(user, payload);
+  const { payload, file, coverImage } = await parseResourceFormData(request);
+  const resource = await createLibrarianResource(user, payload, file, coverImage);
   return successResponse(resource, "Resurs yaratildi");
 });

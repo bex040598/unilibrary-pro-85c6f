@@ -14,7 +14,7 @@ export default async function TeacherPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-10 sm:px-6 lg:px-8">
       <div>
-        <p className="text-sm uppercase tracking-[0.24em] text-primary">Teacher workflow</p>
+        <p className="text-sm uppercase tracking-[0.24em] text-primary">O‘qituvchi ish jarayoni</p>
         <h1 className="mt-2 text-3xl font-semibold">Mening resurslarim</h1>
       </div>
       <Card className="space-y-4">

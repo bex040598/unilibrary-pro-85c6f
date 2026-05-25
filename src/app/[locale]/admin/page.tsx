@@ -20,23 +20,23 @@ export default async function AdminPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-10 sm:px-6 lg:px-8">
       <div>
-        <p className="text-sm uppercase tracking-[0.24em] text-primary">Executive overview</p>
-        <h1 className="mt-2 text-3xl font-semibold">Admin dashboard</h1>
+        <p className="text-sm uppercase tracking-[0.24em] text-primary">Boshqaruv ko‘rinishi</p>
+        <h1 className="mt-2 text-3xl font-semibold">Admin paneli</h1>
       </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Jami resurslar" value={stats.totalResources} />
         <StatCard label="Jami foydalanuvchilar" value={stats.totalUsers} />
-        <StatCard label="Pending resources" value={stats.pendingResources} />
-        <StatCard label="Failed login attempts" value={stats.failedLogins} />
+        <StatCard label="Tasdiq kutilayotgan resurslar" value={stats.pendingResources} />
+        <StatCard label="Muvaffaqiyatsiz kirishlar" value={stats.failedLogins} />
       </div>
       <div className="grid gap-6 xl:grid-cols-2">
         <Card className="space-y-4">
-          <h2 className="text-xl font-semibold">System health</h2>
+          <h2 className="text-xl font-semibold">Tizim holati</h2>
           <pre className="overflow-x-auto rounded-2xl bg-surface-soft p-4 text-sm">{JSON.stringify(health, null, 2)}</pre>
           <pre className="overflow-x-auto rounded-2xl bg-surface-soft p-4 text-sm">{JSON.stringify(settings, null, 2)}</pre>
         </Card>
         <Card className="space-y-4">
-          <h2 className="text-xl font-semibold">Audit logs</h2>
+          <h2 className="text-xl font-semibold">Audit loglari</h2>
           {auditLogs.map((log) => (
             <div key={log.id} className="rounded-2xl border border-border bg-surface-soft p-4 text-sm">
               <p className="font-medium">
@@ -48,7 +48,7 @@ export default async function AdminPage() {
         </Card>
       </div>
       <Card className="space-y-4">
-        <h2 className="text-xl font-semibold">Security logs</h2>
+        <h2 className="text-xl font-semibold">Xavfsizlik loglari</h2>
         {securityLogs.map((log) => (
           <div key={log.id} className="rounded-2xl border border-border bg-surface-soft p-4 text-sm">
             <p className="font-medium">

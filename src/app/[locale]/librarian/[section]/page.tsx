@@ -11,13 +11,26 @@ import { listReservations } from "@/server/services/reservation-service";
 
 const allowedSections = ["reservations", "loans", "returns", "overdue", "renewals", "reading-room", "book-copies", "reports"] as const;
 
+function EmptyState({ text }: { text: string }) {
+  return <div className="rounded-2xl border border-dashed border-border bg-surface-soft p-6 text-sm text-muted-foreground">{text}</div>;
+}
+
+function PageShell({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6 lg:px-8">
+      <h1 className="text-3xl font-semibold">{title}</h1>
+      {children}
+    </div>
+  );
+}
+
 export default async function LibrarianSectionPage({
   params
 }: {
-  params: Promise<{ section: string }>;
+  params: Promise<{ locale: string; section: string }>;
 }) {
-  await requirePageRole("librarian");
-  const { section } = await params;
+  const { locale, section } = await params;
+  await requirePageRole("librarian", locale);
 
   if (!allowedSections.includes(section as (typeof allowedSections)[number])) {
     notFound();
@@ -26,57 +39,65 @@ export default async function LibrarianSectionPage({
   if (section === "reservations") {
     const reservations = await listReservations();
     return (
-      <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-semibold">Reservations queue</h1>
+      <PageShell title="Bronlar navbati">
         <Card className="space-y-4">
-          {reservations.map((item) => (
-            <div key={item.id} className="rounded-2xl border border-border bg-surface-soft p-4 text-sm">
-              <p className="font-medium">{item.resource.title}</p>
-              <p className="text-muted-foreground">
-                {item.user.fullName} - {item.status}
-              </p>
-            </div>
-          ))}
+          {reservations.length ? (
+            reservations.map((item) => (
+              <div key={item.id} className="rounded-2xl border border-border bg-surface-soft p-4 text-sm">
+                <p className="font-medium">{item.resource.title}</p>
+                <p className="text-muted-foreground">
+                  {item.user.fullName} • {item.status}
+                </p>
+              </div>
+            ))
+          ) : (
+            <EmptyState text="Hozircha bron navbati mavjud emas." />
+          )}
         </Card>
-      </div>
+      </PageShell>
     );
   }
 
   if (section === "loans" || section === "returns") {
     const loans = await listAllLoans();
+    const filtered = loans.filter((loan) => (section === "returns" ? loan.status !== "RETURNED" : true));
     return (
-      <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-semibold">{section === "loans" ? "Loans" : "Return queue"}</h1>
+      <PageShell title={section === "loans" ? "Aylanmalar" : "Qaytarish navbati"}>
         <Card className="space-y-4">
-          {loans
-            .filter((loan) => (section === "returns" ? loan.status !== "RETURNED" : true))
-            .map((loan) => (
+          {filtered.length ? (
+            filtered.map((loan) => (
               <div key={loan.id} className="rounded-2xl border border-border bg-surface-soft p-4 text-sm">
                 <p className="font-medium">{loan.resource.title}</p>
                 <p className="text-muted-foreground">
-                  {loan.user.fullName} - {loan.status}
+                  {loan.user.fullName} • {loan.status}
                 </p>
               </div>
-            ))}
+            ))
+          ) : (
+            <EmptyState text="Hozircha yozuvlar topilmadi." />
+          )}
         </Card>
-      </div>
+      </PageShell>
     );
   }
 
   if (section === "overdue") {
     const loans = await listOverdueLoans();
     return (
-      <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-semibold">Overdue</h1>
+      <PageShell title="Kechikkan aylanmalar">
         <Card className="space-y-4">
-          {loans.map((loan) => (
-            <div key={loan.id} className="rounded-2xl border border-danger/30 bg-danger/10 p-4 text-sm">
-              <p className="font-medium">{loan.resource.title}</p>
-              <p className="text-danger">{loan.user.fullName}</p>
-            </div>
-          ))}
+          {loans.length ? (
+            loans.map((loan) => (
+              <div key={loan.id} className="rounded-2xl border border-danger/30 bg-danger/10 p-4 text-sm">
+                <p className="font-medium">{loan.resource.title}</p>
+                <p className="text-danger">{loan.user.fullName}</p>
+              </div>
+            ))
+          ) : (
+            <EmptyState text="Kechikkan aylanmalar topilmadi." />
+          )}
         </Card>
-      </div>
+      </PageShell>
     );
   }
 
@@ -86,31 +107,33 @@ export default async function LibrarianSectionPage({
       orderBy: { createdAt: "desc" }
     });
     return (
-      <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-semibold">Renewals</h1>
+      <PageShell title="Muddat uzaytirish so‘rovlari">
         <Card className="space-y-4">
-          {renewals.map((item) => (
-            <div key={item.id} className="rounded-2xl border border-border bg-surface-soft p-4 text-sm">
-              <p className="font-medium">{item.loan.resource.title}</p>
-              <p className="text-muted-foreground">
-                {item.user.fullName} - {item.status}
-              </p>
-            </div>
-          ))}
+          {renewals.length ? (
+            renewals.map((item) => (
+              <div key={item.id} className="rounded-2xl border border-border bg-surface-soft p-4 text-sm">
+                <p className="font-medium">{item.loan.resource.title}</p>
+                <p className="text-muted-foreground">
+                  {item.user.fullName} • {item.status}
+                </p>
+              </div>
+            ))
+          ) : (
+            <EmptyState text="Muddat uzaytirish so‘rovlari mavjud emas." />
+          )}
         </Card>
-      </div>
+      </PageShell>
     );
   }
 
   if (section === "reading-room") {
     const [rooms, reservations] = await Promise.all([listReadingRooms(), listSeatReservations()]);
     return (
-      <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-semibold">Reading room</h1>
+      <PageShell title="O‘quv zali bronlari">
         <Card className="space-y-4">
           <pre className="overflow-x-auto rounded-2xl bg-surface-soft p-4 text-sm">{JSON.stringify({ rooms, reservations }, null, 2)}</pre>
         </Card>
-      </div>
+      </PageShell>
     );
   }
 
@@ -121,28 +144,30 @@ export default async function LibrarianSectionPage({
       take: 50
     });
     return (
-      <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-semibold">Book copies</h1>
+      <PageShell title="Bosma nusxalar">
         <Card className="space-y-4">
-          {copies.map((copy) => (
-            <div key={copy.id} className="rounded-2xl border border-border bg-surface-soft p-4 text-sm">
-              <p className="font-medium">{copy.resource.title}</p>
-              <p className="text-muted-foreground">
-                {copy.inventoryNumber} - {copy.status}
-              </p>
-            </div>
-          ))}
+          {copies.length ? (
+            copies.map((copy) => (
+              <div key={copy.id} className="rounded-2xl border border-border bg-surface-soft p-4 text-sm">
+                <p className="font-medium">{copy.resource.title}</p>
+                <p className="text-muted-foreground">
+                  {copy.inventoryNumber} • {copy.status}
+                </p>
+              </div>
+            ))
+          ) : (
+            <EmptyState text="Bosma nusxalar hali qo‘shilmagan." />
+          )}
         </Card>
-      </div>
+      </PageShell>
     );
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-semibold">Reports</h1>
+    <PageShell title="Hisobotlar">
       <Card className="rounded-2xl border border-dashed border-border bg-surface-soft p-8 text-sm text-muted-foreground">
-        CSV export va richer analytics keyingi patchda admin/librarian report endpoints bilan ulanadi.
+        Hisobotlar API va grafiklar kutubxonachi statistikasi bilan ulangan. Batafsil ko‘rinish keyingi iteratsiyada kengaytiriladi.
       </Card>
-    </div>
+    </PageShell>
   );
 }

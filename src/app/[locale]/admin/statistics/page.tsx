@@ -15,15 +15,15 @@ export default async function AdminStatisticsPage() {
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-10 sm:px-6 lg:px-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-sm uppercase tracking-[0.24em] text-primary">Analytics</p>
-          <h1 className="mt-2 text-3xl font-semibold">Admin statistics</h1>
+          <p className="text-sm uppercase tracking-[0.24em] text-primary">Statistika</p>
+          <h1 className="mt-2 text-3xl font-semibold">Admin statistikasi</h1>
         </div>
         <div className="flex flex-wrap gap-3">
           <Link href="/api/statistics/export?report=resources" className="text-sm text-primary underline underline-offset-4">
-            Export category CSV
+            Kategoriyalar CSV eksporti
           </Link>
           <Link href="/api/statistics/export?report=downloads" className="text-sm text-primary underline underline-offset-4">
-            Export download CSV
+            Yuklab olishlar CSV eksporti
           </Link>
         </div>
       </div>
@@ -36,7 +36,7 @@ export default async function AdminStatisticsPage() {
         topSearchKeywords={analytics.topSearchKeywords}
       />
       <Card className="space-y-4">
-        <h2 className="text-xl font-semibold">Additional analytics</h2>
+        <h2 className="text-xl font-semibold">Qo‘shimcha tahlil</h2>
         <pre className="overflow-x-auto rounded-2xl bg-surface-soft p-4 text-sm">{JSON.stringify(analytics, null, 2)}</pre>
       </Card>
     </div>

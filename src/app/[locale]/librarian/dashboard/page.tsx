@@ -2,8 +2,8 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { requirePageRole } from "@/lib/permissions/rbac";
 import { formatDate } from "@/lib/utils";
@@ -27,14 +27,14 @@ export default async function LibrarianDashboardPage({
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-sm uppercase tracking-[0.24em] text-primary">Kutubxonachi paneli</p>
-          <h1 className="mt-2 text-3xl font-semibold">Katalog va aylanma nazorati</h1>
+          <h1 className="mt-2 text-3xl font-semibold">Katalog va kutubxona aylanmasi nazorati</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Resurslar, bronlar, kitob qaytarishlar va kafedra bo'yicha akademik resurslar shu panel orqali boshqariladi.
+            Resurslar, bronlar, kitob qaytarishlar va akademik fond shu panel orqali boshqariladi.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
           <Link href={`/${locale}/librarian/resources/new`}>
-            <Button>Resurs qo'shish</Button>
+            <Button>Resurs qo‘shish</Button>
           </Link>
           <Link href={`/${locale}/librarian/reservations`}>
             <Button variant="secondary">Bronlarni boshqarish</Button>
@@ -43,10 +43,10 @@ export default async function LibrarianDashboardPage({
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Resurslar" value={dashboard.resources.length} />
-        <StatCard label="Faol loanlar" value={dashboard.borrowings.filter((loan) => loan.status !== "RETURNED").length} />
-        <StatCard label="Overdue" value={dashboard.overdue.length} />
-        <StatCard label="Pending approvals" value={dashboard.pendingResources.length} />
+        <StatCard label="Jami resurslar" value={dashboard.metrics.totalResources} />
+        <StatCard label="Bugun qo‘shilgan" value={dashboard.metrics.todayAddedResources} />
+        <StatCard label="Bugungi ko‘rishlar" value={dashboard.metrics.todayViews} />
+        <StatCard label="Bugungi yuklab olishlar" value={dashboard.metrics.todayDownloads} />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[0.85fr,1.15fr]">
@@ -54,7 +54,7 @@ export default async function LibrarianDashboardPage({
           <h2 className="text-xl font-semibold">Profil</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Ism familiya</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">F.I.Sh.</p>
               <p className="mt-1 font-medium">{dashboard.profile.fullName}</p>
             </div>
             <div>
@@ -63,11 +63,15 @@ export default async function LibrarianDashboardPage({
             </div>
             <div>
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Lavozim</p>
-              <p className="mt-1 font-medium">{dashboard.profile.position ?? "Kutubxonachi"}</p>
+              <p className="mt-1 font-medium">{dashboard.profile.position}</p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Mas'ul bo'lim</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Mas’ul bo‘lim</p>
               <p className="mt-1 font-medium">{dashboard.profile.department ?? "Biriktirilmagan"}</p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Employee ID</p>
+              <p className="mt-1 font-medium">{dashboard.profile.employeeId ?? "Kiritilmagan"}</p>
             </div>
             <div>
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Telefon</p>
@@ -80,7 +84,7 @@ export default async function LibrarianDashboardPage({
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-xl font-semibold">Kitob berish va qaytarish</h2>
             <Link href={`/${locale}/librarian/returns`} className="text-sm font-semibold text-primary">
-              Return queue
+              Qaytarish navbati
             </Link>
           </div>
           {dashboard.borrowings.length ? (
@@ -91,7 +95,7 @@ export default async function LibrarianDashboardPage({
                     <div>
                       <p className="font-medium">{loan.resource.title}</p>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        {loan.user.fullName} • Qaytarish: {formatDate(loan.dueAt)}
+                        {loan.user.fullName} • Qaytarish muddati: {formatDate(loan.dueAt)}
                       </p>
                     </div>
                     <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">{loan.status}</span>
@@ -144,13 +148,13 @@ export default async function LibrarianDashboardPage({
               </div>
             ))
           ) : (
-            <EmptyState text="Hozircha bronlar yo'q." />
+            <EmptyState text="Hozircha bronlar yo‘q." />
           )}
         </Card>
 
         <Card className="space-y-4">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-xl font-semibold">Yangi yuklangan resurslar</h2>
+            <h2 className="text-xl font-semibold">Tasdiq kutilayotgan resurslar</h2>
             <Link href={`/${locale}/moderator/pending`} className="text-sm font-semibold text-primary">
               Moderator navbati
             </Link>
@@ -160,12 +164,12 @@ export default async function LibrarianDashboardPage({
               <div key={resource.id} className="rounded-2xl border border-border bg-surface-soft p-4 text-sm">
                 <p className="font-medium">{resource.title}</p>
                 <p className="mt-1 text-muted-foreground">
-                  {resource.uploadedBy.fullName} • {resource.department?.nameUz ?? "Kafedra yo'q"}
+                  {resource.uploadedBy.fullName} • {resource.department?.nameUz ?? "Kafedra yo‘q"}
                 </p>
               </div>
             ))
           ) : (
-            <EmptyState text="Hozircha tasdiq kutayotgan resurslar yo'q." />
+            <EmptyState text="Hozircha tasdiq kutilayotgan resurslar yo‘q." />
           )}
         </Card>
       </div>
@@ -174,23 +178,25 @@ export default async function LibrarianDashboardPage({
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="text-xl font-semibold">Hisobotlar va nazorat</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Eng ko'p o'qilgan resurslar, faol talabalar va kechikishlar ko'rsatkichi.</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Eng ko‘p o‘qilgan resurslar, faol talabalar va kechikishlar ko‘rsatkichi.
+            </p>
           </div>
           <Link href={`/${locale}/librarian/reports`} className="text-sm font-semibold text-primary">
-            To'liq hisobot
+            To‘liq hisobot
           </Link>
         </div>
         <div className="grid gap-4 md:grid-cols-3">
           <div className="rounded-2xl border border-border bg-surface-soft p-4">
-            <p className="text-sm text-muted-foreground">Eng ko'p o'qilgan resurs</p>
-            <p className="mt-2 font-semibold">{dashboard.reports.mostViewedResources[0]?.title ?? "Hozircha ma'lumot yo'q"}</p>
+            <p className="text-sm text-muted-foreground">Eng ko‘p o‘qilgan resurs</p>
+            <p className="mt-2 font-semibold">{dashboard.reports.mostViewedResources[0]?.title ?? "Hozircha ma’lumot yo‘q"}</p>
           </div>
           <div className="rounded-2xl border border-border bg-surface-soft p-4">
             <p className="text-sm text-muted-foreground">Faol talabalar</p>
             <p className="mt-2 font-semibold">{dashboard.reports.activeStudents}</p>
           </div>
           <div className="rounded-2xl border border-border bg-surface-soft p-4">
-            <p className="text-sm text-muted-foreground">Kechiktirilgan kitoblar</p>
+            <p className="text-sm text-muted-foreground">Kechikkan kitoblar</p>
             <p className="mt-2 font-semibold">{dashboard.reports.overdueCount}</p>
           </div>
         </div>

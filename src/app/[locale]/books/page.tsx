@@ -212,9 +212,7 @@ export default async function BooksPage({
             {books.items.length ? (
               books.items.map((resource) => <ResourceCard key={resource.id} locale={safeLocale} resource={resource} />)
             ) : (
-              <Card className="col-span-full border-dashed p-10 text-center text-sm text-muted-foreground">
-                Hozircha kitoblar topilmadi.
-              </Card>
+              <Card className="col-span-full border-dashed p-10 text-center text-sm text-muted-foreground">Hozircha kitoblar topilmadi.</Card>
             )}
           </div>
           <Card className="flex items-center justify-between">

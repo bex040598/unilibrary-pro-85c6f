@@ -30,7 +30,7 @@ export async function createReadingRoom(
 export async function listSeats(roomId: string) {
   const room = await readingRoomRepository.getRoom(roomId);
   if (!room) {
-    throw new AppError("NOT_FOUND", "Reading room not found", 404);
+    throw new AppError("NOT_FOUND", "O'quv zali topilmadi", 404);
   }
 
   return room.seats;
@@ -103,7 +103,7 @@ export async function createSeatReservation(
   await createNotification({
     userId: user.id,
     type: "READING_ROOM_BOOKED",
-    title: "Reading room booked",
+    title: "O'quv zali band qilindi",
     message: "O'quv zali uchun joy band qilindi.",
     actionUrl: "/uz/cabinet/reading-room",
     priority: "NORMAL"
@@ -151,7 +151,7 @@ export async function updateSeatReservationStatus(user: User, reservationId: str
   await createNotification({
     userId: reservation.userId,
     type: `READING_ROOM_${nextStatus}`,
-    title: `Reading room ${nextStatus.toLowerCase()}`,
+    title: `O'quv zali ${nextStatus.toLowerCase()}`,
     message: `O'quv zali broni ${nextStatus.toLowerCase()} holatiga o'tdi.`,
     actionUrl: "/uz/cabinet/reading-room",
     priority: nextStatus === "NO_SHOW" ? "HIGH" : "NORMAL"

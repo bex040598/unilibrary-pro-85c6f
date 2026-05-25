@@ -27,10 +27,22 @@ export default async function TeacherProfilePage({
         <StatCard label="Ko‘rishlar" value={profile.summary.viewsCount} />
       </div>
       <Card className="grid gap-4 md:grid-cols-2">
-        <div><p className="text-xs uppercase tracking-wide text-muted-foreground">Ism familiya</p><p className="mt-1 font-medium">{profile.summary.fullName}</p></div>
-        <div><p className="text-xs uppercase tracking-wide text-muted-foreground">Email</p><p className="mt-1 font-medium">{profile.summary.email}</p></div>
-        <div><p className="text-xs uppercase tracking-wide text-muted-foreground">Kafedra</p><p className="mt-1 font-medium">{profile.summary.department ?? "Kiritilmagan"}</p></div>
-        <div><p className="text-xs uppercase tracking-wide text-muted-foreground">Employee ID</p><p className="mt-1 font-medium">{profile.summary.employeeId ?? "Kiritilmagan"}</p></div>
+        <div>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">F.I.Sh.</p>
+          <p className="mt-1 font-medium">{profile.summary.fullName}</p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Email</p>
+          <p className="mt-1 font-medium">{profile.summary.email}</p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Kafedra</p>
+          <p className="mt-1 font-medium">{profile.summary.department ?? "Kiritilmagan"}</p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Employee ID</p>
+          <p className="mt-1 font-medium">{profile.summary.employeeId ?? "Kiritilmagan"}</p>
+        </div>
       </Card>
     </div>
   );

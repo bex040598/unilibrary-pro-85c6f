@@ -2,12 +2,12 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { requirePageRole } from "@/lib/permissions/rbac";
-import { getStudentDashboard } from "@/server/services/student-dashboard-service";
 import { formatDate } from "@/lib/utils";
+import { getStudentDashboard } from "@/server/services/student-dashboard-service";
 
 function EmptyState({ text }: { text: string }) {
   return <div className="rounded-2xl border border-dashed border-border bg-surface-soft p-6 text-sm text-muted-foreground">{text}</div>;
@@ -27,34 +27,37 @@ export default async function StudentDashboardPage({
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-sm uppercase tracking-[0.24em] text-primary">Talaba kabineti</p>
-          <h1 className="mt-2 text-3xl font-semibold">O'qish va kutubxona faoliyatingiz bir joyda</h1>
+          <h1 className="mt-2 text-3xl font-semibold">O‘qish va kutubxona faoliyatingiz bir joyda</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Profil, band qilingan resurslar, qaytarish muddati va o'quv zali bronlari shu yerda jamlangan.
+            Profil, saqlangan resurslar, qaytarish muddati va o‘quv zali bronlari shu kabinetda jamlangan.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
           <Link href={`/${locale}/catalog`}>
-            <Button>Katalogga o'tish</Button>
+            <Button>Katalogga o‘tish</Button>
           </Link>
           <Link href={`/${locale}/cabinet/profile`}>
-            <Button variant="secondary">Profilni ko'rish</Button>
+            <Button variant="secondary">Profilni ko‘rish</Button>
           </Link>
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Saqlangan resurslar" value={dashboard.resources.favorites.length} />
-        <StatCard label="Faol loanlar" value={dashboard.borrowings.activeCount} />
+        <StatCard label="Faol aylanmalar" value={dashboard.borrowings.activeCount} />
         <StatCard label="Kechikkan kitoblar" value={dashboard.borrowings.overdueCount} />
-        <StatCard label="Faol bronlar" value={dashboard.bookings.filter((item) => ["BOOKED", "CHECKED_IN"].includes(item.status)).length} />
+        <StatCard
+          label="Faol bronlar"
+          value={dashboard.bookings.filter((item) => ["BOOKED", "CHECKED_IN"].includes(item.status)).length}
+        />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr,1.1fr]">
         <Card className="space-y-4">
-          <h2 className="text-xl font-semibold">Profil ma'lumotlari</h2>
+          <h2 className="text-xl font-semibold">Profil ma’lumotlari</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Ism familiya</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">F.I.Sh.</p>
               <p className="mt-1 font-medium">{dashboard.profile.fullName}</p>
             </div>
             <div>
@@ -70,7 +73,7 @@ export default async function StudentDashboardPage({
               <p className="mt-1 font-medium">{dashboard.profile.faculty ?? "Hozircha kiritilmagan"}</p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Yo'nalish</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Yo‘nalish</p>
               <p className="mt-1 font-medium">{dashboard.profile.direction ?? "Hozircha kiritilmagan"}</p>
             </div>
             <div>
@@ -84,7 +87,7 @@ export default async function StudentDashboardPage({
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-xl font-semibold">Kutubxona aylanmasi</h2>
             <Link href={`/${locale}/cabinet/loans`} className="text-sm font-semibold text-primary">
-              Barchasini ko'rish
+              Barchasini ko‘rish
             </Link>
           </div>
           {dashboard.borrowings.items.length ? (
@@ -110,7 +113,7 @@ export default async function StudentDashboardPage({
       <div className="grid gap-6 xl:grid-cols-3">
         <Card className="space-y-4">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-xl font-semibold">Mening resurslarim</h2>
+            <h2 className="text-xl font-semibold">Saqlangan resurslar</h2>
             <Link href={`/${locale}/cabinet/favorites`} className="text-sm font-semibold text-primary">
               Batafsil
             </Link>
@@ -123,15 +126,15 @@ export default async function StudentDashboardPage({
               </div>
             ))
           ) : (
-            <EmptyState text="Hozircha saqlangan kitoblar yo'q." />
+            <EmptyState text="Hozircha saqlangan kitoblar yo‘q." />
           )}
         </Card>
 
         <Card className="space-y-4">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-xl font-semibold">O'quv zali</h2>
+            <h2 className="text-xl font-semibold">O‘quv zali</h2>
             <Link href={`/${locale}/cabinet/reading-room`} className="text-sm font-semibold text-primary">
-              Bronlarni ko'rish
+              Bronlarni ko‘rish
             </Link>
           </div>
           {dashboard.bookings.length ? (
@@ -144,7 +147,7 @@ export default async function StudentDashboardPage({
               </div>
             ))
           ) : (
-            <EmptyState text="Hozircha o'quv zali bronlari mavjud emas." />
+            <EmptyState text="Hozircha o‘quv zali bronlari mavjud emas." />
           )}
         </Card>
 
@@ -172,10 +175,12 @@ export default async function StudentDashboardPage({
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="text-xl font-semibold">AI tavsiyalari</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Yo'nalishingiz va ko'rish tarixingiz asosida tavsiya qilingan resurslar.</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Yo‘nalishingiz va ko‘rish tarixingiz asosida tavsiya qilingan resurslar.
+            </p>
           </div>
-          <Link href={`/${locale}/catalog`} className="text-sm font-semibold text-primary">
-            Katalogni ko'rish
+          <Link href={`/${locale}/cabinet/recommendations`} className="text-sm font-semibold text-primary">
+            Barchasini ko‘rish
           </Link>
         </div>
         {dashboard.recommendations.length ? (

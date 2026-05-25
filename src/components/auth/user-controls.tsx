@@ -39,8 +39,45 @@ function getStatisticsPath(locale: string, role: string) {
   return `/${locale}/teacher/statistics`;
 }
 
+function getLabels(locale: string) {
+  if (locale === "ru") {
+    return {
+      profile: "Мой профиль",
+      dashboard: "Панель",
+      favorites: "Сохранённое",
+      statistics: "Моя статистика",
+      logout: "Выйти",
+      logoutSuccess: "Вы вышли из системы",
+      logoutError: "Не удалось выйти из системы"
+    };
+  }
+
+  if (locale === "en") {
+    return {
+      profile: "My Profile",
+      dashboard: "Dashboard",
+      favorites: "Saved Items",
+      statistics: "My Statistics",
+      logout: "Logout",
+      logoutSuccess: "You have signed out",
+      logoutError: "Unable to sign out"
+    };
+  }
+
+  return {
+    profile: "Mening profilim",
+    dashboard: "Dashboard",
+    favorites: "Saqlanganlar",
+    statistics: "Statistikam",
+    logout: "Chiqish",
+    logoutSuccess: "Tizimdan chiqildi",
+    logoutError: "Chiqishda xatolik yuz berdi"
+  };
+}
+
 export function UserControls({ locale, profilePath, dashboardPath, fullName, role }: Props) {
   const router = useRouter();
+  const labels = getLabels(locale);
 
   return (
     <details className="relative">
@@ -55,22 +92,22 @@ export function UserControls({ locale, profilePath, dashboardPath, fullName, rol
       </summary>
       <div className="absolute right-0 z-50 mt-3 min-w-56 rounded-2xl border border-border bg-background p-2 shadow-xl">
         <button className="w-full rounded-xl px-3 py-2 text-left text-sm hover:bg-surface-soft" onClick={() => router.push(profilePath)}>
-          Mening profilim
+          {labels.profile}
         </button>
         <button className="w-full rounded-xl px-3 py-2 text-left text-sm hover:bg-surface-soft" onClick={() => router.push(dashboardPath)}>
-          Dashboard
+          {labels.dashboard}
         </button>
         <button
           className="w-full rounded-xl px-3 py-2 text-left text-sm hover:bg-surface-soft"
           onClick={() => router.push(getFavoritesPath(locale, role))}
         >
-          Saqlanganlar
+          {labels.favorites}
         </button>
         <button
           className="w-full rounded-xl px-3 py-2 text-left text-sm hover:bg-surface-soft"
           onClick={() => router.push(getStatisticsPath(locale, role))}
         >
-          Statistikam
+          {labels.statistics}
         </button>
         <button
           className="w-full rounded-xl px-3 py-2 text-left text-sm text-danger hover:bg-danger/10"
@@ -79,16 +116,16 @@ export function UserControls({ locale, profilePath, dashboardPath, fullName, rol
             const payload = await response.json().catch(() => null);
 
             if (!response.ok) {
-              toast.error(payload?.error?.message ?? "Chiqishda xatolik yuz berdi");
+              toast.error(payload?.error?.message ?? labels.logoutError);
               return;
             }
 
-            toast.success("Tizimdan chiqildi");
+            toast.success(labels.logoutSuccess);
             router.push(`/${locale}/auth/login`);
             router.refresh();
           }}
         >
-          Chiqish
+          {labels.logout}
         </button>
       </div>
     </details>

@@ -79,7 +79,7 @@ export default async function ResourceDetailPage({
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Mualliflar</p>
-              <p className="mt-1 text-lg font-medium">{resource.authorNames.join(", ") || "Muallif ko'rsatilmagan"}</p>
+              <p className="mt-1 text-lg font-medium">{resource.authorNames.join(", ") || "Muallif ko‘rsatilmagan"}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Annotatsiya</p>
@@ -99,7 +99,7 @@ export default async function ResourceDetailPage({
               <div className="rounded-2xl bg-surface-soft p-4">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Foydalanish</p>
                 <ul className="mt-3 space-y-2 text-sm">
-                  <li>Ko'rishlar: {resource.viewCount}</li>
+                  <li>Ko‘rishlar: {resource.viewCount}</li>
                   <li>Yuklab olishlar: {resource.downloadCount}</li>
                   <li>Reyting: {resource.ratingAvg.toFixed(1)}</li>
                   <li>Sharhlar: {resource.ratingCount}</li>
@@ -112,7 +112,7 @@ export default async function ResourceDetailPage({
           <CitationBox citations={citations} />
 
           <Card className="space-y-4">
-            <h2 className="text-2xl font-semibold">PDF ko'rish oynasi</h2>
+            <h2 className="text-2xl font-semibold">PDF ko‘rish oynasi</h2>
             {resource.fileUrl ? (
               <iframe
                 src={`/api/files/resources/${resource.id}`}

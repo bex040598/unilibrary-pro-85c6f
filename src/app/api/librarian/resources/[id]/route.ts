@@ -1,15 +1,18 @@
 import { withRoute, successResponse } from "@/lib/api/response";
 import { requireRole } from "@/lib/permissions/rbac";
-import { resourceInputSchema } from "@/lib/validation/resource";
+import { parseResourceFormData } from "@/lib/api/resource-form";
 import { deleteLibrarianResource, updateLibrarianResource } from "@/server/services/librarian-dashboard-service";
 
-export const PATCH = withRoute(async (request: Request, context: { params: Promise<{ id: string }> }) => {
+async function updateHandler(request: Request, context: { params: Promise<{ id: string }> }) {
   const user = await requireRole(["LIBRARIAN", "ADMIN"]);
   const { id } = await context.params;
-  const payload = resourceInputSchema.parse(await request.json());
-  const resource = await updateLibrarianResource(user, id, payload);
+  const { payload, file, coverImage } = await parseResourceFormData(request);
+  const resource = await updateLibrarianResource(user, id, payload, file, coverImage);
   return successResponse(resource, "Resurs yangilandi");
-});
+}
+
+export const PATCH = withRoute(updateHandler);
+export const PUT = withRoute(updateHandler);
 
 export const DELETE = withRoute(async (_request: Request, context: { params: Promise<{ id: string }> }) => {
   const user = await requireRole(["LIBRARIAN", "ADMIN"]);

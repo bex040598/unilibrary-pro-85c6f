@@ -6,10 +6,10 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { getDatabaseHealth } from "@/lib/db/database-health";
+import { prisma } from "@/lib/db/prisma";
 import { getLocale } from "@/lib/i18n";
 import { buildPagination } from "@/lib/utils";
 import { resourceQuerySchema } from "@/lib/validation/resource";
-import { prisma } from "@/lib/db/prisma";
 import { listResources } from "@/server/services/resource-service";
 
 type CatalogSearchParams = Record<string, string | string[] | undefined>;
@@ -22,6 +22,7 @@ function parseCatalogSearchParams(rawSearchParams: CatalogSearchParams) {
   const result = resourceQuerySchema.safeParse({
     q: firstValue(rawSearchParams.q),
     category: firstValue(rawSearchParams.category),
+    genre: firstValue(rawSearchParams.genre),
     language: firstValue(rawSearchParams.language),
     facultyId: firstValue(rawSearchParams.facultyId),
     departmentId: firstValue(rawSearchParams.departmentId),
@@ -34,11 +35,7 @@ function parseCatalogSearchParams(rawSearchParams: CatalogSearchParams) {
     limit: firstValue(rawSearchParams.limit)
   });
 
-  if (result.success) {
-    return result.data;
-  }
-
-  return resourceQuerySchema.parse({});
+  return result.success ? result.data : resourceQuerySchema.parse({});
 }
 
 async function getCatalogData(query: ReturnType<typeof parseCatalogSearchParams>) {
@@ -51,7 +48,7 @@ async function getCatalogData(query: ReturnType<typeof parseCatalogSearchParams>
     faculties: [],
     departments: [],
     databaseOk: false,
-    databaseHint: "Ma'lumotlar bazasi hozircha mavjud emas"
+    databaseHint: "Ma’lumotlar bazasi hozircha mavjud emas"
   };
 
   const health = await getDatabaseHealth().catch(() => ({
@@ -88,7 +85,7 @@ async function getCatalogData(query: ReturnType<typeof parseCatalogSearchParams>
 
     return {
       ...empty,
-      databaseHint: "Katalog ma'lumotlarini yuklashda vaqtinchalik muammo yuz berdi"
+      databaseHint: "Katalog ma’lumotlarini yuklashda vaqtinchalik muammo yuz berdi"
     };
   }
 }
@@ -112,7 +109,7 @@ export default async function CatalogPage({
         <Card className="mb-6 border-danger/30 bg-danger/5 text-danger">
           <p className="text-sm font-semibold">Database connection problem</p>
           <p className="mt-2 text-sm text-foreground">
-            Katalog vaqtincha cheklangan rejimda ishlayapti. {databaseHint ?? "Ma'lumotlar bazasiga ulanib bo'lmadi"}.
+            Katalog vaqtincha cheklangan rejimda ishlayapti. {databaseHint ?? "Ma’lumotlar bazasiga ulanib bo‘lmadi"}.
           </p>
         </Card>
       ) : null}
@@ -122,7 +119,7 @@ export default async function CatalogPage({
             <form className="space-y-4">
               <div>
                 <label className="mb-2 block text-sm font-medium">Qidiruv</label>
-                <Input name="q" defaultValue={parsed.q} placeholder="Kalit so'z..." />
+                <Input name="q" defaultValue={parsed.q} placeholder="Kalit so‘z..." />
               </div>
               <div>
                 <label className="mb-2 block text-sm font-medium">Kategoriya</label>
@@ -175,15 +172,15 @@ export default async function CatalogPage({
         <section className="space-y-6">
           <Card className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.24em] text-primary">Catalog marketplace</p>
+              <p className="text-sm uppercase tracking-[0.24em] text-primary">Katalog</p>
               <h1 className="mt-2 text-3xl font-semibold">ATMU resurslar katalogi</h1>
             </div>
             <form className="grid gap-3 sm:grid-cols-[1fr,180px]">
               <Input name="q" defaultValue={parsed.q} placeholder="Qidiruv..." />
               <Select name="sort" defaultValue={parsed.sort}>
                 <option value="latest">Eng yangi</option>
-                <option value="popular">Mashhur</option>
-                <option value="downloads">Downloads</option>
+                <option value="popular">Eng ko‘p ko‘rilgan</option>
+                <option value="downloads">Eng ko‘p yuklangan</option>
                 <option value="rating">Reyting</option>
                 <option value="year">Yil</option>
               </Select>
@@ -197,10 +194,8 @@ export default async function CatalogPage({
             </div>
           ) : (
             <Card className="space-y-4 text-center">
-              <p className="text-xl font-semibold">Qidiruv bo'yicha resurs topilmadi</p>
-              <p className="text-sm text-muted-foreground">
-                Filterlarni tozalab ko'ring yoki boshqa kalit so'z bilan qidiring.
-              </p>
+              <p className="text-xl font-semibold">Qidiruv bo‘yicha resurs topilmadi</p>
+              <p className="text-sm text-muted-foreground">Filterlarni tozalab ko‘ring yoki boshqa kalit so‘z bilan qidiring.</p>
             </Card>
           )}
           <Card className="flex items-center justify-between">

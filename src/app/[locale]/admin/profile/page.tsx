@@ -23,15 +23,29 @@ export default async function AdminProfilePage({
       </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Audit amallari" value={profile.summary.auditActionsCount} />
-        <StatCard label="Security loglar" value={profile.summary.securityLogsCount} />
+        <StatCard label="Xavfsizlik loglari" value={profile.summary.securityLogsCount} />
         <StatCard label="Jami resurslar" value={overview.totalResources} />
         <StatCard label="Jami foydalanuvchilar" value={overview.totalUsers} />
       </div>
       <Card className="grid gap-4 md:grid-cols-2">
-        <div><p className="text-xs uppercase tracking-wide text-muted-foreground">Ism familiya</p><p className="mt-1 font-medium">{profile.summary.fullName}</p></div>
-        <div><p className="text-xs uppercase tracking-wide text-muted-foreground">Email</p><p className="mt-1 font-medium">{profile.summary.email}</p></div>
-        <div><p className="text-xs uppercase tracking-wide text-muted-foreground">Rol</p><p className="mt-1 font-medium">{profile.summary.role}</p></div>
-        <div><p className="text-xs uppercase tracking-wide text-muted-foreground">Oxirgi kirish</p><p className="mt-1 font-medium">{profile.summary.lastLoginAt ? new Date(profile.summary.lastLoginAt).toLocaleString("uz-UZ") : "Ma’lumot yo‘q"}</p></div>
+        <div>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">F.I.Sh.</p>
+          <p className="mt-1 font-medium">{profile.summary.fullName}</p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Email</p>
+          <p className="mt-1 font-medium">{profile.summary.email}</p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Rol</p>
+          <p className="mt-1 font-medium">{profile.summary.role}</p>
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Oxirgi kirish</p>
+          <p className="mt-1 font-medium">
+            {profile.summary.lastLoginAt ? new Date(profile.summary.lastLoginAt).toLocaleString("uz-UZ") : "Ma’lumot yo‘q"}
+          </p>
+        </div>
       </Card>
     </div>
   );

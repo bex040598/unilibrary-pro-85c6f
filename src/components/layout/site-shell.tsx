@@ -50,7 +50,7 @@ export async function SiteShell({
             <Link href={`/${locale}`} className="text-lg font-semibold tracking-tight text-primary">
               ATMU Smart UniLibrary
             </Link>
-            <p className="text-xs text-muted-foreground">Enterprise academic knowledge system</p>
+            <p className="text-xs text-muted-foreground">Universitet akademik bilimlar ekotizimi</p>
           </div>
           <nav className="hidden items-center gap-6 text-sm lg:flex">
             <Link href={`/${locale}/catalog`}>{dict.nav.catalog}</Link>
@@ -88,8 +88,8 @@ export async function SiteShell({
               <li>Katalog</li>
               <li>{dict.nav.books}</li>
               <li>{dict.nav.readingRoom}</li>
-              <li>O‘qituvchi workflow</li>
-              <li>Admin analytics</li>
+              <li>O‘qituvchi ish jarayoni</li>
+              <li>Admin statistikasi</li>
             </ul>
           </div>
           <div>

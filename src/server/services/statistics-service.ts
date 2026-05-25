@@ -85,7 +85,8 @@ export async function getAdminAnalytics() {
     departments,
     roomOccupancy,
     popularSearches,
-    activeUsers
+    activeUsers,
+    topResources
   ] = await Promise.all([
     prisma.category.findMany({
       include: {
@@ -147,6 +148,17 @@ export async function getAdminAnalytics() {
         }
       },
       take: 10
+    }),
+    prisma.resource.findMany({
+      where: {
+        status: "APPROVED"
+      },
+      include: {
+        category: true,
+        department: true
+      },
+      orderBy: [{ viewCount: "desc" }, { downloadCount: "desc" }, { ratingAvg: "desc" }],
+      take: 10
     })
   ]);
 
@@ -186,6 +198,15 @@ export async function getAdminAnalytics() {
         favorites: item._count.favorites
       }))
       .sort((left, right) => right.views + right.downloads - (left.views + left.downloads)),
+    topResources: topResources.map((item) => ({
+      id: item.id,
+      title: item.title,
+      category: item.category.nameUz,
+      department: item.department?.nameUz ?? "ATMU",
+      views: item.viewCount,
+      downloads: item.downloadCount,
+      rating: item.ratingAvg
+    })),
     topSearchKeywords: popularSearches.map((item) => ({
       label: item.query,
       value: item._count.query

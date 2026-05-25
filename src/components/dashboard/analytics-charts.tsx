@@ -22,7 +22,7 @@ export function AnalyticsCharts({
   return (
     <div className="grid gap-6 xl:grid-cols-2">
       <div className="rounded-3xl border border-border bg-surface p-4">
-        <h3 className="mb-4 text-lg font-semibold">Resource count by category</h3>
+        <h3 className="mb-4 text-lg font-semibold">Kategoriyalar bo‘yicha resurslar soni</h3>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={resourcesByCategory}>
@@ -37,7 +37,7 @@ export function AnalyticsCharts({
       </div>
 
       <div className="rounded-3xl border border-border bg-surface p-4">
-        <h3 className="mb-4 text-lg font-semibold">Downloads and views by month</h3>
+        <h3 className="mb-4 text-lg font-semibold">Oylar bo‘yicha yuklab olishlar va ko‘rishlar</h3>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={downloadsByMonth.map((item, index) => ({ ...item, views: viewsByMonth[index]?.count ?? 0 }))}>
@@ -46,15 +46,15 @@ export function AnalyticsCharts({
               <YAxis />
               <Tooltip />
               <Legend />
-              <Line type="monotone" dataKey="count" name="Downloads" stroke="#1E5AA8" strokeWidth={3} />
-              <Line type="monotone" dataKey="views" name="Views" stroke="#D6A84F" strokeWidth={3} />
+              <Line type="monotone" dataKey="count" name="Yuklab olishlar" stroke="#1E5AA8" strokeWidth={3} />
+              <Line type="monotone" dataKey="views" name="Ko‘rishlar" stroke="#D6A84F" strokeWidth={3} />
             </LineChart>
           </ResponsiveContainer>
         </div>
       </div>
 
       <div className="rounded-3xl border border-border bg-surface p-4">
-        <h3 className="mb-4 text-lg font-semibold">Reservation and loan trend</h3>
+        <h3 className="mb-4 text-lg font-semibold">Bron va aylanma dinamikasi</h3>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={reservationTrend.map((item, index) => ({ ...item, loans: loanTrend[index]?.count ?? 0 }))}>
@@ -63,15 +63,15 @@ export function AnalyticsCharts({
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="count" name="Reservations" fill="#0E9F9A" radius={[8, 8, 0, 0]} />
-              <Bar dataKey="loans" name="Loans" fill="#2E90FA" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="count" name="Bronlar" fill="#0E9F9A" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="loans" name="Aylanmalar" fill="#2E90FA" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
       <div className="rounded-3xl border border-border bg-surface p-4">
-        <h3 className="mb-4 text-lg font-semibold">Top search keywords</h3>
+        <h3 className="mb-4 text-lg font-semibold">Eng faol qidiruv kalit so‘zlari</h3>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>

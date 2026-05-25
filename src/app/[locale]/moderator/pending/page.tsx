@@ -18,8 +18,8 @@ export default async function ModeratorPendingPage({ params }: { params: Promise
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6 lg:px-8">
       <div>
-        <p className="text-sm uppercase tracking-[0.24em] text-primary">Moderator queue</p>
-        <h1 className="mt-2 text-3xl font-semibold">Pending resources</h1>
+        <p className="text-sm uppercase tracking-[0.24em] text-primary">Moderator navbati</p>
+        <h1 className="mt-2 text-3xl font-semibold">Tasdiq kutilayotgan resurslar</h1>
       </div>
       <Card className="space-y-4">
         {resources.length ? (
@@ -33,14 +33,14 @@ export default async function ModeratorPendingPage({ params }: { params: Promise
                   </p>
                 </div>
                 <Link href={`/${locale}/moderator/review/${resource.id}`} className="text-sm text-primary underline underline-offset-4">
-                  Review
+                  Ko‘rib chiqish
                 </Link>
               </div>
             </div>
           ))
         ) : (
           <div className="rounded-2xl border border-dashed border-border bg-surface-soft p-8 text-sm text-muted-foreground">
-            Pending resource topilmadi.
+            Tasdiq kutilayotgan resurs topilmadi.
           </div>
         )}
       </Card>

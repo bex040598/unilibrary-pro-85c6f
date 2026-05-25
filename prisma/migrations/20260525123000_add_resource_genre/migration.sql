@@ -1,0 +1,2 @@
+ALTER TABLE "Resource"
+ADD COLUMN IF NOT EXISTS "genre" TEXT;
