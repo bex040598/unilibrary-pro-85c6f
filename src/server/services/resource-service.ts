@@ -17,6 +17,7 @@ type ResourceInput = {
   abstract?: string;
   keywords?: string;
   subject?: string;
+  genre?: string;
   categoryId: string;
   facultyId?: string;
   departmentId?: string;
@@ -36,6 +37,7 @@ type ResourceInput = {
 type ResourceQuery = {
   q?: string;
   category?: string;
+  genre?: string;
   language?: string;
   facultyId?: string;
   departmentId?: string;
@@ -139,6 +141,7 @@ export async function createResource(user: User, input: ResourceInput, file?: Fi
         description: input.description,
         abstract: input.abstract,
         keywords: [input.keywords, input.subject].filter(Boolean).join(", "),
+        genre: input.genre,
         categoryId: input.categoryId,
         facultyId: input.facultyId,
         departmentId: input.departmentId,
@@ -235,6 +238,7 @@ export async function updateResource(
         description: input.description,
         abstract: input.abstract,
         keywords: [input.keywords, input.subject].filter(Boolean).join(", "),
+        genre: input.genre,
         categoryId: input.categoryId,
         facultyId: input.facultyId,
         departmentId: input.departmentId,

@@ -70,7 +70,7 @@ export function LoginForm({ locale }: { locale: string }) {
 
           toast.success("Kirish muvaffaqiyatli");
           router.push(
-            payload?.data?.role ? getRoleDashboardPath(locale, payload.data.role) : payload?.data?.redirectTo ?? `/${locale}/student/dashboard`
+            payload?.data?.role ? getRoleDashboardPath(locale, payload.data.role) : payload?.data?.redirectTo ?? `/${locale}/cabinet`
           );
           router.refresh();
         } catch {

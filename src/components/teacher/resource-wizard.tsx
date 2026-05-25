@@ -21,6 +21,7 @@ type ResourceDraft = {
   description?: string;
   abstract?: string | null;
   keywords?: string | null;
+  genre?: string | null;
   categoryId?: string;
   facultyId?: string | null;
   departmentId?: string | null;
@@ -65,8 +66,8 @@ export function TeacherResourceWizard({
   draftRedirectPath,
   submitRedirectPath,
   allowSubmitToReview = true,
-  draftButtonLabel = "Save draft",
-  submitButtonLabel = "Submit to review"
+  draftButtonLabel = "Draft saqlash",
+  submitButtonLabel = "Reviewga yuborish"
 }: {
   locale: string;
   categories: Option[];
@@ -90,6 +91,7 @@ export function TeacherResourceWizard({
     abstract: resource?.abstract ?? "",
     keywords: resource?.keywords ?? "",
     subject: "",
+    genre: resource?.genre ?? "",
     categoryId: resource?.categoryId ?? categories[0]?.id ?? "",
     facultyId: resource?.facultyId ?? faculties[0]?.id ?? "",
     departmentId: resource?.departmentId ?? departments[0]?.id ?? "",
@@ -148,11 +150,11 @@ export function TeacherResourceWizard({
         const result = await response.json();
 
         if (!response.ok || !result.success) {
-          throw new Error(result.error?.message ?? "Resource save failed");
+          throw new Error(result.error?.message ?? "Resursni saqlab bo'lmadi");
         }
 
         const nextId = result.data.id as string;
-        toast.success(submitToReview ? "Resource saved and submitted" : "Draft saved");
+        toast.success(submitToReview ? "Resurs saqlandi va reviewga yuborildi" : "Draft saqlandi");
 
         if (submitToReview) {
           const submitResponse = await fetch(`/api/resources/${nextId}/submit`, {
@@ -160,7 +162,7 @@ export function TeacherResourceWizard({
           });
           const submitResult = await submitResponse.json();
           if (!submitResponse.ok || !submitResult.success) {
-            throw new Error(submitResult.error?.message ?? "Submit failed");
+            throw new Error(submitResult.error?.message ?? "Reviewga yuborib bo'lmadi");
           }
           toast.success("Moderator review uchun yuborildi");
           router.push(submitRedirectPath ?? `/${locale}/teacher/submissions`);
@@ -171,7 +173,7 @@ export function TeacherResourceWizard({
         router.push(draftRedirectPath ?? `/${locale}/teacher/resources`);
         router.refresh();
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Unknown error");
+        toast.error(error instanceof Error ? error.message : "Noma'lum xatolik yuz berdi");
       }
     });
   }
@@ -200,27 +202,28 @@ export function TeacherResourceWizard({
 
       {step === 0 ? (
         <Card className="grid gap-4 md:grid-cols-2">
-          <Input value={form.title} onChange={(event) => updateField("title", event.target.value)} placeholder="Title" />
+          <Input value={form.title} onChange={(event) => updateField("title", event.target.value)} placeholder="Resurs nomi" />
           <Input
             value={form.authors}
             onChange={(event) => updateField("authors", event.target.value)}
-            placeholder="Authors, comma separated"
+            placeholder="Mualliflar, vergul bilan ajrating"
           />
+          <Input value={form.genre} onChange={(event) => updateField("genre", event.target.value)} placeholder="Janr" />
           <div className="md:col-span-2">
             <Textarea
               value={form.abstract}
               onChange={(event) => updateField("abstract", event.target.value)}
-              placeholder="Abstract"
+              placeholder="Annotatsiya"
             />
           </div>
           <div className="md:col-span-2">
             <Textarea
               value={form.description}
               onChange={(event) => updateField("description", event.target.value)}
-              placeholder="Description"
+              placeholder="Tavsif"
             />
           </div>
-          <Input value={form.keywords} onChange={(event) => updateField("keywords", event.target.value)} placeholder="Keywords" />
+          <Input value={form.keywords} onChange={(event) => updateField("keywords", event.target.value)} placeholder="Kalit so'zlar" />
           <Select value={form.resourceType} onChange={(event) => updateField("resourceType", event.target.value)}>
             {resourceTypeOptions.map((item) => (
               <option key={item} value={item}>
@@ -264,20 +267,20 @@ export function TeacherResourceWizard({
           <Input
             value={form.publicationYear}
             onChange={(event) => updateField("publicationYear", event.target.value)}
-            placeholder="Publication year"
+            placeholder="Nashr yili"
           />
-          <Input value={form.subject} onChange={(event) => updateField("subject", event.target.value)} placeholder="Subject (optional)" />
+          <Input value={form.subject} onChange={(event) => updateField("subject", event.target.value)} placeholder="Fan yoki yo'nalish (ixtiyoriy)" />
         </Card>
       ) : null}
 
       {step === 2 ? (
         <Card className="grid gap-4">
           <label className="grid gap-2 text-sm">
-            Resource file
+            Resurs fayli
             <Input type="file" accept=".pdf,.docx,.epub,.jpg,.jpeg,.png" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
           </label>
           <label className="grid gap-2 text-sm">
-            Cover image
+            Muqova rasmi
             <Input type="file" accept=".jpg,.jpeg,.png" onChange={(event) => setCoverImage(event.target.files?.[0] ?? null)} />
           </label>
           <div className="rounded-2xl border border-dashed border-border bg-surface-soft p-4 text-sm text-muted-foreground">
@@ -305,14 +308,14 @@ export function TeacherResourceWizard({
 
       {step === 4 ? (
         <Card className="space-y-4">
-          <h2 className="text-xl font-semibold">Preview</h2>
+          <h2 className="text-xl font-semibold">Ko'rib chiqish</h2>
           <pre className="overflow-x-auto rounded-2xl bg-surface-soft p-4 text-sm">{JSON.stringify(form, null, 2)}</pre>
           <div className="grid gap-3 md:grid-cols-2">
             <div className="rounded-2xl border border-border bg-surface-soft p-4 text-sm">
-              File: {file?.name ?? "Existing file will be kept"}
+              Fayl: {file?.name ?? "Mavjud fayl saqlanadi"}
             </div>
             <div className="rounded-2xl border border-border bg-surface-soft p-4 text-sm">
-              Cover: {coverImage?.name ?? "Existing cover will be kept"}
+              Muqova: {coverImage?.name ?? "Mavjud muqova saqlanadi"}
             </div>
           </div>
         </Card>
@@ -320,7 +323,7 @@ export function TeacherResourceWizard({
 
       <div className="flex flex-wrap justify-between gap-3">
         <Button variant="secondary" type="button" onClick={() => setStep((current) => Math.max(0, current - 1))}>
-          Back
+          Orqaga
         </Button>
         <div className="flex flex-wrap gap-3">
           <Button type="button" variant="secondary" disabled={isPending} onClick={() => saveDraft(false)}>
@@ -328,7 +331,7 @@ export function TeacherResourceWizard({
           </Button>
           {step < steps.length - 1 ? (
             <Button type="button" disabled={isPending} onClick={() => setStep((current) => Math.min(steps.length - 1, current + 1))}>
-              Next
+              Keyingi
             </Button>
           ) : allowSubmitToReview ? (
             <Button type="button" disabled={isPending} onClick={() => saveDraft(true)}>

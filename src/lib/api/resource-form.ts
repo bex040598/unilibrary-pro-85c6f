@@ -16,6 +16,7 @@ export async function parseResourceFormData(request: Request) {
     abstract: formField(formData, "abstract"),
     keywords: formField(formData, "keywords"),
     subject: formField(formData, "subject"),
+    genre: formField(formData, "genre"),
     categoryId: formField(formData, "categoryId"),
     facultyId: formField(formData, "facultyId"),
     departmentId: formField(formData, "departmentId"),

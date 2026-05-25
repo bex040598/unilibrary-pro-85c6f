@@ -50,7 +50,7 @@ export const reviewStatuses = ["PENDING", "APPROVED", "REJECTED"] as const;
 
 export const roleRouteAccess: Record<string, Role[]> = {
   student: ["STUDENT"],
-  cabinet: ["STUDENT", "TEACHER", "DEPARTMENT_HEAD", "LIBRARIAN", "MODERATOR", "ADMIN"],
+  cabinet: ["STUDENT"],
   teacher: ["TEACHER", "ADMIN"],
   "department-head": ["DEPARTMENT_HEAD", "ADMIN"],
   librarian: ["LIBRARIAN", "ADMIN"],

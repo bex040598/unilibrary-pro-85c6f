@@ -83,7 +83,7 @@ describe("POST /api/auth/login", () => {
     expect(response.status).toBe(500);
     expect(payload.success).toBe(false);
     expect(payload.error.code).toBe("INTERNAL_ERROR");
-    expect(payload.error.message).toBe("Unexpected server error");
+    expect(payload.error.message).toBe("Serverda vaqtinchalik xatolik yuz berdi");
     expect(JSON.stringify(payload)).not.toContain("JWT_SECRET");
     expect(JSON.stringify(payload)).not.toContain("Error:");
   });

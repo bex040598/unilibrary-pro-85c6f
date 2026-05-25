@@ -1,9 +1,9 @@
 import Link from "next/link";
 
+import { UserControls } from "@/components/auth/user-controls";
+import { ThemeSwitch } from "@/components/layout/theme-switch";
 import { getDictionary } from "@/lib/i18n";
 import { getCurrentUser } from "@/lib/permissions/rbac";
-import { ThemeSwitch } from "@/components/layout/theme-switch";
-import { UserControls } from "@/components/auth/user-controls";
 import { getRoleDashboardPath } from "@/lib/role-dashboard";
 
 export async function SiteShell({
@@ -15,7 +15,17 @@ export async function SiteShell({
 }) {
   const dict = getDictionary(locale);
   const user = await getCurrentUser();
-  const profilePath = user ? getRoleDashboardPath(locale, user.role) : `/${locale}/auth/login`;
+  const dashboardPath = user ? getRoleDashboardPath(locale, user.role) : `/${locale}/auth/login`;
+  const profilePath =
+    user?.role === "STUDENT"
+      ? `/${locale}/cabinet/profile`
+      : user?.role === "LIBRARIAN"
+        ? `/${locale}/librarian/profile`
+        : user?.role === "ADMIN"
+          ? `/${locale}/admin/profile`
+          : user?.role === "TEACHER"
+            ? `/${locale}/teacher/profile`
+            : dashboardPath;
 
   return (
     <div className="min-h-screen">
@@ -28,8 +38,8 @@ export async function SiteShell({
               <Link href="/ru">RU</Link>
               <Link href="/en">EN</Link>
             </div>
-            {user ? <Link href={profilePath}>Profilim</Link> : <Link href={`/${locale}/auth/login`}>{dict.nav.login}</Link>}
-            <Link href={`/${locale}/admin/dashboard`}>{dict.nav.admin}</Link>
+            {user ? <Link href={profilePath}>{dict.common.profile}</Link> : <Link href={`/${locale}/auth/login`}>{dict.nav.login}</Link>}
+            <Link href={`/${locale}/admin`}>{dict.nav.admin}</Link>
             <Link href={`/${locale}#contact`}>{dict.nav.contact}</Link>
           </div>
         </div>
@@ -44,13 +54,21 @@ export async function SiteShell({
           </div>
           <nav className="hidden items-center gap-6 text-sm lg:flex">
             <Link href={`/${locale}/catalog`}>{dict.nav.catalog}</Link>
-            <Link href={`/${locale}/kafedralar`}>{dict.nav.departments}</Link>
+            <Link href={`/${locale}/departments`}>{dict.nav.departments}</Link>
             <Link href={`/${locale}`}>{dict.nav.readingRoom}</Link>
             <Link href={`/${locale}`}>{dict.nav.aiSearch}</Link>
             <Link href={`/${locale}`}>{dict.nav.help}</Link>
           </nav>
           <div className="flex items-center gap-3">
-            {user ? <UserControls locale={locale} profilePath={profilePath} /> : null}
+            {user ? (
+              <UserControls
+                locale={locale}
+                profilePath={profilePath}
+                dashboardPath={dashboardPath}
+                fullName={user.fullName}
+                role={user.role}
+              />
+            ) : null}
             <ThemeSwitch />
           </div>
         </div>
@@ -61,15 +79,16 @@ export async function SiteShell({
           <div>
             <p className="text-lg font-semibold">ATMU Smart UniLibrary</p>
             <p className="mt-3 text-sm text-primary-foreground/75">
-              Universitet kutubxonasi, kafedra resurslari va o'quv zali ekotizimi.
+              Universitet kutubxonasi, kafedra resurslari va o‘quv zali ekotizimi.
             </p>
           </div>
           <div>
             <p className="font-semibold">Platforma</p>
             <ul className="mt-3 space-y-2 text-sm text-primary-foreground/75">
               <li>Katalog</li>
-              <li>Reading room</li>
-              <li>Teacher workflow</li>
+              <li>{dict.nav.books}</li>
+              <li>{dict.nav.readingRoom}</li>
+              <li>O‘qituvchi workflow</li>
               <li>Admin analytics</li>
             </ul>
           </div>

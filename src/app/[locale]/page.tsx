@@ -215,7 +215,7 @@ export default async function HomePage({
                 </span>
               </div>
               <p className="text-sm text-muted-foreground">Eng faol fan va oxirgi yangilanish statistikasi keyingi sprintlarda chuqurlashtiriladi.</p>
-              <Link href={`/${locale}/kafedralar/${department.slug}`}>
+              <Link href={`/${locale}/departments/${department.slug}`}>
                 <Button variant="secondary">Kafedra kutubxonasiga kirish</Button>
               </Link>
             </Card>

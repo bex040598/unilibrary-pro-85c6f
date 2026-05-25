@@ -142,6 +142,7 @@ model Resource {
   description     String
   abstract        String?
   keywords        String?
+  genre           String?
   categoryId      String
   facultyId       String?
   departmentId    String?

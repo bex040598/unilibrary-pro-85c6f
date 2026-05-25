@@ -1,0 +1,55 @@
+{
+  "nav": {
+    "catalog": "Catalog",
+    "departments": "Departments",
+    "readingRoom": "Reading Room",
+    "aiSearch": "AI Search",
+    "help": "Help",
+    "login": "Login",
+    "admin": "Admin",
+    "contact": "Contact",
+    "books": "Books"
+  },
+  "home": {
+    "badge": "ATMU Smart UniLibrary Enterprise",
+    "title": "University knowledge resources in one digital ecosystem",
+    "subtitle": "Electronic catalog, department resources, printed book circulation, reading-room booking, and AI search on a single platform.",
+    "searchPlaceholder": "Search by book, author, department, course, or keyword..."
+  },
+  "auth": {
+    "loginTitle": "Sign in to your account",
+    "registerTitle": "Register a new user"
+  },
+  "common": {
+    "view": "View",
+    "download": "Download",
+    "save": "Save",
+    "reserve": "Reserve",
+    "citation": "Citation",
+    "search": "Search",
+    "profile": "My Profile",
+    "dashboard": "Dashboard",
+    "favorites": "Saved Items",
+    "statistics": "My Statistics",
+    "logout": "Logout"
+  },
+  "books": {
+    "title": "Books and Electronic Literature",
+    "subtitle": "From fiction to research monographs, all resources are available in one academic catalog.",
+    "searchPlaceholder": "Enter a book title, author, genre, subject, or keyword...",
+    "recommendedToday": "Recommended Today",
+    "mostViewed": "Most Read Books",
+    "newArrivals": "New Arrivals",
+    "popularAmongStudents": "Popular among Students",
+    "teacherRecommendations": "Teacher Recommendations",
+    "departmentSelections": "Department Selections",
+    "weekBook": "Book of the Week",
+    "fiction": "Fiction",
+    "worldLiterature": "World Literature",
+    "uzbekLiterature": "Uzbek Literature",
+    "textbooks": "Textbooks",
+    "studyGuides": "Study Guides",
+    "monographs": "Monographs",
+    "researchResources": "Research Resources"
+  }
+}

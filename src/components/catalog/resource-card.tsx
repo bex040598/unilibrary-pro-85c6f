@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Eye, Heart, Library, Quote, Star, Download } from "lucide-react";
+import { Download, Eye, Heart, Library, Quote, Star } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -12,6 +12,7 @@ type ResourceCardProps = {
     slug: string;
     title: string;
     authorNames?: string[];
+    genre?: string | null;
     publicationYear?: number | null;
     language: string;
     resourceType: string;
@@ -21,6 +22,7 @@ type ResourceCardProps = {
     downloadCount: number;
     accessType: string;
     status: string;
+    category?: { nameUz: string } | null;
     department?: { nameUz: string } | null;
     availableCopies?: number;
   };
@@ -45,10 +47,11 @@ export function ResourceCard({ locale, resource }: ResourceCardProps) {
           {resource.fileFormat ? <Badge value={resource.fileFormat} /> : null}
         </div>
         <div>
-          <p className="text-sm font-medium text-foreground">{resource.authorNames?.join(", ") || "Unknown author"}</p>
+          <p className="text-sm font-medium text-foreground">{resource.authorNames?.join(", ") || "Muallif ko‘rsatilmagan"}</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            {resource.department?.nameUz ?? "ATMU"} • {resource.publicationYear ?? "n/a"} • {resource.language}
+            {resource.category?.nameUz ?? resource.department?.nameUz ?? "ATMU"} • {resource.publicationYear ?? "n/a"} • {resource.language}
           </p>
+          {resource.genre ? <p className="mt-1 text-xs text-muted-foreground">Janr: {resource.genre}</p> : null}
         </div>
         <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1">
@@ -64,22 +67,22 @@ export function ResourceCard({ locale, resource }: ResourceCardProps) {
             {formatNumber(resource.downloadCount)}
           </span>
         </div>
-        <p className="text-xs text-muted-foreground">Available copies: {resource.availableCopies ?? 0}</p>
+        <p className="text-xs text-muted-foreground">Mavjud nusxalar: {resource.availableCopies ?? 0}</p>
       </div>
       <div className="mt-auto flex flex-wrap gap-2">
         <Link
           href={`/${locale}/catalog/${resource.slug}`}
           className="inline-flex h-10 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground"
         >
-          View
+          O‘qish
         </Link>
         <div className="inline-flex h-10 items-center rounded-xl border border-border px-4 text-sm text-muted-foreground">
           <Heart className="mr-2 h-4 w-4" />
-          Save
+          Saqlash
         </div>
         <div className="inline-flex h-10 items-center rounded-xl border border-border px-4 text-sm text-muted-foreground">
           <Quote className="mr-2 h-4 w-4" />
-          Citation
+          Iqtibos
         </div>
       </div>
     </Card>

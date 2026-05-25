@@ -6,6 +6,7 @@ export const resourceInputSchema = z.object({
   abstract: z.string().optional(),
   keywords: z.string().optional(),
   subject: z.string().optional(),
+  genre: z.string().optional(),
   categoryId: z.string().min(1),
   facultyId: z.string().optional(),
   departmentId: z.string().optional(),
@@ -39,6 +40,7 @@ export const resourceInputSchema = z.object({
 export const resourceQuerySchema = z.object({
   q: z.string().optional(),
   category: z.string().optional(),
+  genre: z.string().optional(),
   language: z.enum(["UZ", "RU", "EN"]).optional(),
   facultyId: z.string().optional(),
   departmentId: z.string().optional(),
@@ -46,7 +48,7 @@ export const resourceQuerySchema = z.object({
   accessType: z.string().optional(),
   hasAvailableCopies: z.enum(["true", "false"]).optional(),
   rating: z.coerce.number().min(1).max(5).optional(),
-  sort: z.enum(["latest", "popular", "downloads", "rating", "year"]).default("latest"),
+  sort: z.enum(["latest", "popular", "downloads", "rating", "year", "newest", "mostViewed", "mostDownloaded", "highestRated", "titleAsc", "yearDesc"]).default("latest"),
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(48).default(12)
 });

@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import Image from "next/image";
+import { headers } from "next/headers";
 
 import { CitationBox } from "@/components/catalog/citation-box";
 import { ResourceCard } from "@/components/catalog/resource-card";
@@ -12,7 +13,7 @@ import { prisma } from "@/lib/db/prisma";
 import { getCurrentUser } from "@/lib/permissions/rbac";
 import { generateQrDataUrl } from "@/lib/qr";
 import { formatDate } from "@/lib/utils";
-import { getCitation, getResourceBySlug, listReviews, listSimilarResources } from "@/server/services/resource-service";
+import { getCitation, getResourceBySlug, listReviews, listSimilarResources, trackView } from "@/server/services/resource-service";
 
 type ReviewItem = Awaited<ReturnType<typeof listReviews>>[number];
 type SimilarItem = Awaited<ReturnType<typeof listSimilarResources>>[number];
@@ -24,6 +25,8 @@ export default async function ResourceDetailPage({
 }) {
   const { locale, slug } = await params;
   const resource = await getResourceBySlug(slug);
+  const headerStore = await headers();
+
   const [citations, similar, reviews, qrDataUrl, currentUser] = await Promise.all([
     getCitation(resource.id),
     listSimilarResources(resource.id),
@@ -31,6 +34,12 @@ export default async function ResourceDetailPage({
     generateQrDataUrl(`${getAppUrl()}/${locale}/catalog/${resource.slug}`),
     getCurrentUser()
   ]);
+
+  await trackView(resource.id, currentUser?.id, {
+    ipAddress: headerStore.get("x-forwarded-for"),
+    userAgent: headerStore.get("user-agent")
+  });
+
   const favorite = currentUser
     ? await prisma.favorite.findUnique({
         where: {
@@ -70,31 +79,31 @@ export default async function ResourceDetailPage({
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Mualliflar</p>
-              <p className="mt-1 text-lg font-medium">{resource.authorNames.join(", ") || "Unknown author"}</p>
+              <p className="mt-1 text-lg font-medium">{resource.authorNames.join(", ") || "Muallif ko'rsatilmagan"}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Abstract</p>
+              <p className="text-sm text-muted-foreground">Annotatsiya</p>
               <p className="mt-2 leading-7 text-foreground">{resource.abstract || resource.description}</p>
             </div>
             <div className="grid gap-3 md:grid-cols-2">
               <div className="rounded-2xl bg-surface-soft p-4">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Metadata</p>
                 <ul className="mt-3 space-y-2 text-sm">
-                  <li>Publisher: {resource.publisher || "-"}</li>
-                  <li>Year: {resource.publicationYear || "-"}</li>
+                  <li>Nashriyot: {resource.publisher || "-"}</li>
+                  <li>Nashr yili: {resource.publicationYear || "-"}</li>
                   <li>ISBN: {resource.isbn || "-"}</li>
-                  <li>Pages: {resource.pages || "-"}</li>
-                  <li>Department: {resource.department?.nameUz || "-"}</li>
+                  <li>Sahifalar: {resource.pages || "-"}</li>
+                  <li>Kafedra: {resource.department?.nameUz || "-"}</li>
                 </ul>
               </div>
               <div className="rounded-2xl bg-surface-soft p-4">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Usage</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Foydalanish</p>
                 <ul className="mt-3 space-y-2 text-sm">
-                  <li>Views: {resource.viewCount}</li>
-                  <li>Downloads: {resource.downloadCount}</li>
-                  <li>Rating: {resource.ratingAvg.toFixed(1)}</li>
-                  <li>Reviews: {resource.ratingCount}</li>
-                  <li>Available copies: {resource.availableCopies}</li>
+                  <li>Ko'rishlar: {resource.viewCount}</li>
+                  <li>Yuklab olishlar: {resource.downloadCount}</li>
+                  <li>Reyting: {resource.ratingAvg.toFixed(1)}</li>
+                  <li>Sharhlar: {resource.ratingCount}</li>
+                  <li>Mavjud nusxalar: {resource.availableCopies}</li>
                 </ul>
               </div>
             </div>
@@ -103,7 +112,7 @@ export default async function ResourceDetailPage({
           <CitationBox citations={citations} />
 
           <Card className="space-y-4">
-            <h2 className="text-2xl font-semibold">PDF Viewer</h2>
+            <h2 className="text-2xl font-semibold">PDF ko'rish oynasi</h2>
             {resource.fileUrl ? (
               <iframe
                 src={`/api/files/resources/${resource.id}`}
@@ -118,7 +127,7 @@ export default async function ResourceDetailPage({
           </Card>
 
           <Card className="space-y-4">
-            <h2 className="text-2xl font-semibold">Reviews</h2>
+            <h2 className="text-2xl font-semibold">Sharhlar</h2>
             <div className="space-y-4">
               {reviews.map((review: ReviewItem) => (
                 <div key={review.id} className="rounded-2xl border border-border bg-surface-soft p-4">
@@ -126,7 +135,7 @@ export default async function ResourceDetailPage({
                     <p className="font-medium">{review.user.fullName}</p>
                     <p className="text-sm text-muted-foreground">{formatDate(review.createdAt)}</p>
                   </div>
-                  <p className="mt-2 text-sm text-muted-foreground">Rating: {review.rating}/5</p>
+                  <p className="mt-2 text-sm text-muted-foreground">Baholash: {review.rating}/5</p>
                   <p className="mt-2 text-sm">{review.comment}</p>
                 </div>
               ))}
@@ -136,20 +145,20 @@ export default async function ResourceDetailPage({
 
         <div className="space-y-6">
           <Card className="space-y-4">
-            <h2 className="text-xl font-semibold">Availability</h2>
-            <p className="text-sm text-muted-foreground">Available copies: {resource.availableCopies}</p>
+            <h2 className="text-xl font-semibold">Mavjudlik</h2>
+            <p className="text-sm text-muted-foreground">Mavjud nusxalar: {resource.availableCopies}</p>
             <div className="space-y-2">
               {resource.copies.map((copy) => (
                 <div key={copy.id} className="rounded-2xl border border-border bg-surface-soft p-4 text-sm">
-                  <p>Inventory: {copy.inventoryNumber}</p>
-                  <p>Shelf: {copy.shelfLocation || "-"}</p>
-                  <p>Status: {copy.status}</p>
+                  <p>Inventar: {copy.inventoryNumber}</p>
+                  <p>Javon: {copy.shelfLocation || "-"}</p>
+                  <p>Holat: {copy.status}</p>
                 </div>
               ))}
             </div>
           </Card>
           <Card className="space-y-4">
-            <h2 className="text-xl font-semibold">Similar resources</h2>
+            <h2 className="text-xl font-semibold">O‘xshash resurslar</h2>
             <div className="grid gap-4">
               {similar.map((item: SimilarItem) => (
                 <ResourceCard

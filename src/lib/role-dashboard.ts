@@ -5,13 +5,13 @@ export function getRoleDashboardPath(locale: string, role: string) {
 
   switch (normalizedRole) {
     case "ADMIN":
-      return `/${locale}/admin/dashboard`;
+      return `/${locale}/admin`;
     case "LIBRARIAN":
-      return `/${locale}/librarian/dashboard`;
+      return `/${locale}/librarian`;
     case "MODERATOR":
-      return `/${locale}/moderator/dashboard`;
+      return `/${locale}/moderator`;
     case "STUDENT":
-      return `/${locale}/student/dashboard`;
+      return `/${locale}/cabinet`;
     case "TEACHER":
       return `/${locale}/teacher`;
     case "DEPARTMENT_HEAD":

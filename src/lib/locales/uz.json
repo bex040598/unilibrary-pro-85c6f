@@ -1,0 +1,55 @@
+{
+  "nav": {
+    "catalog": "Katalog",
+    "departments": "Kafedralar",
+    "readingRoom": "O‘quv zali",
+    "aiSearch": "AI qidiruv",
+    "help": "Yordam",
+    "login": "Kirish",
+    "admin": "Admin",
+    "contact": "Aloqa",
+    "books": "Kitoblar"
+  },
+  "home": {
+    "badge": "ATMU Smart UniLibrary Enterprise",
+    "title": "Universitet bilim resurslari yagona raqamli ekotizimda",
+    "subtitle": "Elektron katalog, kafedralar resurslari, bosma kitoblar aylanishi, o‘quv zali bron qilish va AI qidiruv bitta platformada.",
+    "searchPlaceholder": "Kitob, muallif, kafedra, fan yoki kalit so‘z kiriting..."
+  },
+  "auth": {
+    "loginTitle": "Shaxsiy kabinetga kirish",
+    "registerTitle": "Yangi foydalanuvchini ro‘yxatdan o‘tkazish"
+  },
+  "common": {
+    "view": "Ko‘rish",
+    "download": "Yuklab olish",
+    "save": "Saqlash",
+    "reserve": "Band qilish",
+    "citation": "Iqtibos",
+    "search": "Qidirish",
+    "profile": "Mening profilim",
+    "dashboard": "Dashboard",
+    "favorites": "Saqlanganlar",
+    "statistics": "Statistikam",
+    "logout": "Chiqish"
+  },
+  "books": {
+    "title": "Kitoblar va elektron adabiyotlar",
+    "subtitle": "Badiiy adabiyotlardan tortib ilmiy monografiyalargacha — barcha resurslar yagona katalogda.",
+    "searchPlaceholder": "Kitob nomi, muallif, janr, fan yoki kalit so‘z kiriting...",
+    "recommendedToday": "Bugun tavsiya etiladi",
+    "mostViewed": "Eng ko‘p o‘qilgan kitoblar",
+    "newArrivals": "Yangi qo‘shilgan kitoblar",
+    "popularAmongStudents": "Talabalar orasida mashhur",
+    "teacherRecommendations": "O‘qituvchilar tavsiyasi",
+    "departmentSelections": "Kafedralar bo‘yicha tanlangan adabiyotlar",
+    "weekBook": "Hafta kitobi",
+    "fiction": "Badiiy adabiyotlar",
+    "worldLiterature": "Jahon adabiyotlari",
+    "uzbekLiterature": "O‘zbek adabiyoti",
+    "textbooks": "Darsliklar",
+    "studyGuides": "O‘quv qo‘llanmalar",
+    "monographs": "Monografiyalar",
+    "researchResources": "Ilmiy resurslar"
+  }
+}

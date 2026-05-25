@@ -84,7 +84,8 @@ export async function getAdminAnalytics() {
     faculties,
     departments,
     roomOccupancy,
-    popularSearches
+    popularSearches,
+    activeUsers
   ] = await Promise.all([
     prisma.category.findMany({
       include: {
@@ -131,7 +132,22 @@ export async function getAdminAnalytics() {
         }
       }
     }),
-    getPopularSearches()
+    getPopularSearches(),
+    prisma.user.findMany({
+      where: {
+        role: "STUDENT"
+      },
+      include: {
+        _count: {
+          select: {
+            viewLogs: true,
+            downloadLogs: true,
+            favorites: true
+          }
+        }
+      },
+      take: 10
+    })
   ]);
 
   const overdueTrend = groupMonthly(
@@ -162,6 +178,14 @@ export async function getAdminAnalytics() {
       label: item.name,
       value: item._count.bookings
     })),
+    activeUsers: activeUsers
+      .map((item) => ({
+        label: item.fullName,
+        views: item._count.viewLogs,
+        downloads: item._count.downloadLogs,
+        favorites: item._count.favorites
+      }))
+      .sort((left, right) => right.views + right.downloads - (left.views + left.downloads)),
     topSearchKeywords: popularSearches.map((item) => ({
       label: item.query,
       value: item._count.query

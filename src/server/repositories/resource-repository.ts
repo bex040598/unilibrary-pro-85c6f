@@ -4,6 +4,7 @@ import { buildContains } from "@/lib/search/search-utils";
 type ResourceQuery = {
   q?: string;
   category?: string;
+  genre?: string;
   language?: string;
   facultyId?: string;
   departmentId?: string;
@@ -63,6 +64,10 @@ function buildWhere(query: ResourceQuery) {
     where.category = { slug: query.category };
   }
 
+  if (query.genre) {
+    where.genre = buildContains(query.genre);
+  }
+
   if (query.language) {
     where.language = query.language;
   }
@@ -103,13 +108,20 @@ function buildWhere(query: ResourceQuery) {
 function buildOrderBy(sort: string) {
   switch (sort) {
     case "popular":
+    case "mostViewed":
       return { viewCount: "desc" as const };
     case "downloads":
+    case "mostDownloaded":
       return { downloadCount: "desc" as const };
     case "rating":
+    case "highestRated":
       return { ratingAvg: "desc" as const };
     case "year":
+    case "yearDesc":
       return { publicationYear: "desc" as const };
+    case "titleAsc":
+      return { title: "asc" as const };
+    case "newest":
     default:
       return { createdAt: "desc" as const };
   }
