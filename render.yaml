@@ -14,8 +14,8 @@ services:
     plan: starter
     region: frankfurt
     rootDir: .
-    buildCommand: npm install && npm run build
-    startCommand: node scripts/render-start.mjs
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npm run start
     healthCheckPath: /api/health
     autoDeploy: true
     disk:
@@ -27,6 +27,10 @@ services:
         value: 22.11.0
       - key: NODE_ENV
         value: production
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: COOKIE_SAME_SITE
+        value: lax
       - key: DATABASE_URL
         fromDatabase:
           name: atmu-smart-unilibrary-db

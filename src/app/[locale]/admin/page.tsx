@@ -7,8 +7,13 @@ import { getOverviewStats } from "@/server/services/statistics-service";
 import { getHealthStatus, getSystemSettings } from "@/server/services/admin-service";
 import { prisma } from "@/lib/db/prisma";
 
-export default async function AdminPage() {
-  await requirePageRole("admin");
+export default async function AdminPage({
+  params
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  await requirePageRole("admin", locale);
   const [stats, health, settings, auditLogs, securityLogs] = await Promise.all([
     getOverviewStats(),
     getHealthStatus(),

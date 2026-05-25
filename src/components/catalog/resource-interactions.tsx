@@ -56,13 +56,13 @@ export function ResourceInteractions({
         const payload = await response.json();
 
         if (!response.ok || !payload.success) {
-          throw new Error(payload.error?.message ?? "Favorite action failed");
+          throw new Error(payload.error?.message ?? "Saqlash amalini bajarib bo‘lmadi");
         }
 
         setIsFavorite((current) => !current);
-        toast.success(isFavorite ? "Saqlangan ro'yxatdan olib tashlandi." : "Resurs saqlandi.");
+        toast.success(isFavorite ? "Saqlangan ro‘yxatdan olib tashlandi." : "Resurs saqlandi.");
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Favorite action failed");
+        toast.error(error instanceof Error ? error.message : "Saqlash amalini bajarib bo‘lmadi");
       } finally {
         setIsSavingFavorite(false);
       }
@@ -87,13 +87,13 @@ export function ResourceInteractions({
         const payload = await response.json();
 
         if (!response.ok || !payload.success) {
-          throw new Error(payload.error?.message ?? "Reservation failed");
+          throw new Error(payload.error?.message ?? "Band qilish so‘rovi yuborilmadi");
         }
 
-        toast.success("Band qilish so'rovi yaratildi.");
+        toast.success("Band qilish so‘rovi yaratildi.");
         router.refresh();
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Reservation failed");
+        toast.error(error instanceof Error ? error.message : "Band qilish so‘rovi yuborilmadi");
       } finally {
         setIsCreatingReservation(false);
       }
@@ -110,13 +110,13 @@ export function ResourceInteractions({
       const payload = await response.json();
 
       if (!response.ok || !payload.success) {
-        throw new Error(payload.error?.message ?? "Download tracking failed");
+        throw new Error(payload.error?.message ?? "Yuklab olishni boshlashda xatolik yuz berdi");
       }
 
       window.open(payload.data.url, "_blank", "noopener,noreferrer");
       toast.success("Yuklab olish boshlandi.");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Download failed");
+      toast.error(error instanceof Error ? error.message : "Yuklab olishni boshlashda xatolik yuz berdi");
     } finally {
       setIsTrackingDownload(false);
     }
@@ -140,14 +140,14 @@ export function ResourceInteractions({
         const payload = await response.json();
 
         if (!response.ok || !payload.success) {
-          throw new Error(payload.error?.message ?? "Review submit failed");
+          throw new Error(payload.error?.message ?? "Sharhni yuborib bo‘lmadi");
         }
 
         setComment("");
-        toast.success("Review saqlandi.");
+        toast.success("Sharh saqlandi.");
         router.refresh();
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Review submit failed");
+        toast.error(error instanceof Error ? error.message : "Sharhni yuborib bo‘lmadi");
       } finally {
         setIsSubmittingReview(false);
       }
@@ -159,23 +159,23 @@ export function ResourceInteractions({
       <div className="grid gap-3">
         <Button onClick={handleFavoriteToggle} disabled={isSavingFavorite}>
           {isSavingFavorite ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Heart className="mr-2 h-4 w-4" />}
-          {isFavorite ? "Saved" : "Favorite"}
+          {isFavorite ? "Saqlangan" : "Saqlash"}
         </Button>
         <Button variant="secondary" onClick={handleDownload} disabled={isTrackingDownload}>
           {isTrackingDownload ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          Download
+          Yuklab olish
         </Button>
         <Button variant="secondary" onClick={handleReservation} disabled={isCreatingReservation}>
           {isCreatingReservation ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          Reserve
+          Band qilish
         </Button>
       </div>
 
       <div className="rounded-2xl border border-border bg-surface-soft p-4">
-        <p className="text-sm font-medium">Review qoldirish</p>
+        <p className="text-sm font-medium">Sharh qoldirish</p>
         <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
           <Star className="h-4 w-4 text-accent" />
-          <label htmlFor="rating">Rating</label>
+          <label htmlFor="rating">Baholash</label>
           <select
             id="rating"
             className="rounded-xl border border-border bg-background px-3 py-2 text-foreground"
@@ -197,7 +197,7 @@ export function ResourceInteractions({
         />
         <Button className="mt-3 w-full" onClick={handleReviewSubmit} disabled={isSubmittingReview}>
           {isSubmittingReview ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          Review yuborish
+          Sharh yuborish
         </Button>
       </div>
     </div>

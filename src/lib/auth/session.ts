@@ -39,11 +39,13 @@ export async function verifySessionToken(token: string) {
 export function getAuthCookieOptions() {
   const appUrl = getAppUrl();
   const isLocalHttp = appUrl.startsWith("http://localhost") || appUrl.startsWith("http://127.0.0.1");
+  const sameSite = (process.env.COOKIE_SAME_SITE ?? "lax").toLowerCase();
+  const forceSecure = process.env.COOKIE_SECURE === "true";
 
   return {
     httpOnly: true,
-    sameSite: "lax" as const,
-    secure: process.env.NODE_ENV === "production" && !isLocalHttp,
+    sameSite: (sameSite === "strict" ? "strict" : sameSite === "none" ? "none" : "lax") as "lax" | "strict" | "none",
+    secure: forceSecure || (process.env.NODE_ENV === "production" && !isLocalHttp),
     path: "/",
     maxAge: AUTH_COOKIE_MAX_AGE
   };
