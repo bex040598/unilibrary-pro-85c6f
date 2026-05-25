@@ -247,8 +247,10 @@ Render environment variables to set or verify:
 
 Recommended Render commands:
 
-- Build Command: `npm install && npm run build`
-- Start Command: `npm run start:render`
+- Build Command: `npm install && npm run prisma:generate:postgres && npm run build`
+- Start Command: `npm run start`
+
+`npm run start` Render runtime ichida avtomatik ravishda `scripts/render-start.mjs` ga o‘tadi. Shu sabab Blueprint yoki qo‘lda yaratilgan service’larda alohida `start:render` yozish shart emas.
 
 ## Vercel Deployment
 

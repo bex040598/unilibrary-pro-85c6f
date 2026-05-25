@@ -14,7 +14,7 @@ services:
     plan: starter
     region: frankfurt
     rootDir: .
-    buildCommand: npm install && npx prisma generate && npm run build
+    buildCommand: npm install && npm run prisma:generate:postgres && npm run build
     startCommand: npm run start
     healthCheckPath: /api/health
     autoDeploy: true
@@ -38,7 +38,7 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: AUTH_SECRET
-        sync: false
+        generateValue: true
       - key: APP_URL
         sync: false
       - key: NEXT_PUBLIC_APP_URL

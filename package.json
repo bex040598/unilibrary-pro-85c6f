@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node scripts/run-next.mjs dev",
     "build": "next build && node scripts/ensure-next-build-id.mjs",
-    "start": "node scripts/run-next.mjs start",
+    "start": "node scripts/start-runtime.mjs",
     "start:render": "node scripts/render-start.mjs",
     "lint": "eslint . --max-warnings=0",
     "test": "npm run prisma:generate:sqlite && npm run db:seed:sqlite && node scripts/run-vitest.mjs",

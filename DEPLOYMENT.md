@@ -31,7 +31,7 @@ S3_REGION=
 Render Build Command:
 
 ```bash
-npm install && npx prisma generate && npm run build
+npm install && npm run prisma:generate:postgres && npm run build
 ```
 
 Render Start Command:
@@ -39,6 +39,14 @@ Render Start Command:
 ```bash
 npm run start
 ```
+
+`npm run start` Render runtime ichida avtomatik ravishda `scripts/render-start.mjs` ni ishga tushiradi. U:
+
+- `DATABASE_URL` ni tekshiradi
+- `prisma migrate deploy` bajaradi
+- bazaga ulanadi
+- kerak bo‘lsa bo‘sh bazani bir marta seed qiladi
+- so‘ng Next.js serverni ishga tushiradi
 
 Required environment variables are listed in `.env.example` and `render.yaml`.
 
