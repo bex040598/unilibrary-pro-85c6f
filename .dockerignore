@@ -1,0 +1,17 @@
+.git
+.next
+node_modules
+storage
+coverage
+*.log
+dev.err
+dev.log
+runtime.log
+runtime2.log
+runtime3.log
+runtime4.log
+runtime5.log
+runtime6.log
+start-local.err
+start-local.log
+start-nodb.log
